@@ -61,8 +61,8 @@ def get_cartesian_coordinates(theta, radius):
     Returns a list of (x, y) tuples.
     """
     cartesian_coords = []
-    cartesian_coords.append([radius[0], 0.0])
-    for t, r in zip(theta, radius[1:]):
+    # cartesian_coords.append([radius[0], 0.0])
+    for t, r in zip(theta, radius):
         x = round(r * math.cos(math.radians(t)), 4)
         y = round(r * math.sin(math.radians(t)), 4)
         cartesian_coords.append([x, y])

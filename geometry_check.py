@@ -11,8 +11,8 @@ def param_num_sector(ns, theta, radius):
     Raises:        ValueError: If the parameters are inconsistent.
     """
     print(f"Checking geometry parameters: N_s={ns}, theta={theta}, radius={radius}")
-    if len(theta) != ns - 1:
-        raise ValueError(f"Number of theta values should be {ns-1}")
+    if len(theta) != ns:
+        raise ValueError(f"Number of theta values should be {ns}")
     if len(radius) != ns:
         raise ValueError(f"Number of radius values should be {ns}")
     print("Geometry parameters are consistent.")
