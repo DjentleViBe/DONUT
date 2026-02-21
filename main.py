@@ -28,7 +28,7 @@ if __name__ == "__main__":
         ctrl_x_collections.append(ctrl_x)
         ctrl_y_collections.append(ctrl_y)
     toroid_file = get_geometry_parameters_from_toroidal_file("./inputs/toroidal_section.json")
-    x, y, z, ctrl_x, ctrl_y, ctrl_z = build_sketch_sector_toroidal(toroid_file['theta'],
+    (x, y, z), (ctrl_x, ctrl_y, ctrl_z) = build_sketch_sector_toroidal(toroid_file['theta'],
                                                                    toroid_file['phi'],
                                                                    toroid_file['radius'],
                                                                     toroid_file['degree'],
