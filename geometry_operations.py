@@ -53,7 +53,7 @@ def nurbs_curve(ctrl_pts, weights, degree, knot, num_points=100):
         curve_pts.append([coord / denominator for coord in numerator])
     return curve_pts
 
-def get_cartesian_coordinates(theta, radius):
+def get_cartesian_coordinates_2d(theta, radius):
     """
     Convert polar coordinates to Cartesian coordinates.
     theta : list of angles in degrees
@@ -68,6 +68,36 @@ def get_cartesian_coordinates(theta, radius):
         cartesian_coords.append([x, y])
     # cartesian_coords.append([radius[-1], 0.0])
     return cartesian_coords
+
+def get_cartesian_coordinates_3d(theta, phi, radius):
+    """
+    Convert polar coordinates to Cartesian coordinates.
+    theta : list of angles in degrees
+    radius : list of corresponding radii
+    Returns a list of (x, y) tuples.
+    Convert spherical coordinates to Cartesian.
+
+    Parameters
+    ----------
+    r : float or array
+        Radius
+    theta : float or array
+        Polar angle (radians, from +z axis)
+    phi : float or array
+        Azimuthal angle (radians, from +x axis)
+
+    Returns
+    -------
+    x, y, z : same type as input
+    """
+    cartesian_coords = []
+    for t, p, r in zip(theta, phi, radius):
+        x = r * math.sin(math.radians(t)) * math.cos(math.radians(p))
+        y = r * math.sin(math.radians(t)) * math.sin(math.radians(p))
+        z = r * math.cos(math.radians(t))
+        cartesian_coords.append([x, y, z])
+    return cartesian_coords
+
 
 def generate_open_clamped_knots(n_ctrl_pts, degree):
     """
