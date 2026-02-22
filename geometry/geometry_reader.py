@@ -6,7 +6,7 @@ in the input directory and read the JSON files to extract the necessary
 parameters for building the sketches of the sectors.
 """
 import json
-from geometry_check import param_num_sector, param_num_sector_toroidal
+from geometry.geometry_check import param_num_sector, param_num_sector_toroidal
 
 def get_poloidal_sections_from_toroidal_file(filename):
     """Read the toroidal section file to get the list of poloidal sections to process.

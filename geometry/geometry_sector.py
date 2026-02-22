@@ -4,7 +4,7 @@ This module contains functions to build the sketch of a sector based on the geom
 read from the input files. It uses the geometry operations to compute the NURBS curve points
 and control points, and prepares the data for plotting.
 """
-from geometry_operations import nurbs_curve_periodic, \
+from geometry.geometry_operations import nurbs_curve_periodic, \
                                 get_cartesian_coordinates_2d, \
                                 get_cartesian_coordinates_3d, \
                                 generate_periodic_data

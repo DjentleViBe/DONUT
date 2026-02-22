@@ -4,13 +4,13 @@ It orchestrates the reading of geometry parameters from input files,
 building the sketches of the sectors, and plotting the poloidal cross 
 section of the geometry.
 """
-from geometry_reader import get_poloidal_sections_from_toroidal_file, \
+from geometry.geometry_reader import get_poloidal_sections_from_toroidal_file, \
                             get_geometry_parameters_from_poloidal_file,\
                             get_geometry_parameters_from_toroidal_file
-from sector import build_sketch_sector, build_sketch_sector_toroidal, \
+from geometry.geometry_sector import build_sketch_sector, build_sketch_sector_toroidal, \
                     get_toroidal_coordinates_tangent
-from geometry_plotter import plot_geometry
-from geometry_operations import rotate_poloidal_section
+from geometry.geometry_plotter import plot_geometry
+from geometry.geometry_operations import rotate_poloidal_section
 
 if __name__ == "__main__":
     poloidal_sections = get_poloidal_sections_from_toroidal_file("./inputs/toroidal_section.json")
