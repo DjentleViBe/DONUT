@@ -68,3 +68,31 @@ def build_sketch_sector_toroidal(theta, phi, radius, degree, weights):
                                 u_start,
                                 u_end])
     return zip(*curve_points), zip(*ctrl_pts)
+
+def get_toroidal_coordinates_tangent(section_limits, points_3d):
+    """Extract the toroidal coordinates (x, y, z) from the 3D points of 
+    the toroidal section.
+    Args:
+        section_limits: list of tuples defining the limits of the toroidal 
+        section in terms of theta and phi points_3d: list of (x, y, z) 
+        coordinates for the toroidal section
+    Returns:
+        xyz: list of x, y, z coordinates of the toroidal section
+    """
+    toroidal_coordinates = []
+    toroidal_tangents = []
+    for sect in section_limits:
+        index = int(len(points_3d[0]) * sect)
+        toroidal_coordinates.append((points_3d[0][index],
+                                     points_3d[1][index],
+                                     points_3d[2][index]))
+        if index < len(points_3d[0]) - 1:
+            tangent = (points_3d[0][index + 1] - points_3d[0][index],
+                       points_3d[1][index + 1] - points_3d[1][index],
+                       points_3d[2][index + 1] - points_3d[2][index])
+        else:
+            tangent = (points_3d[0][index] - points_3d[0][index - 1],
+                       points_3d[1][index] - points_3d[1][index - 1],
+                       points_3d[2][index] - points_3d[2][index - 1])
+        toroidal_tangents.append(tangent)
+    return toroidal_coordinates, toroidal_tangents
