@@ -49,7 +49,8 @@ def toroidal_cross_section(xyz, ctrl_pts):
     return ax
 
 def plot_geometry(points_2d, ctrl_2d,
-                  points_3d, ctrl_3d):
+                  points_3d, ctrl_3d,
+                  moved_points_3d):
     """Plot the combined geometry of the poloidal and toroidal sections.
     Args:        points_2d: list of (x, y) coordinates for each poloidal section
         ctrl_2d: list of (x, y) coordinates of control points for each poloidal section
@@ -60,15 +61,15 @@ def plot_geometry(points_2d, ctrl_2d,
         ctrl_y: list of y coordinates of control points for the toroidal section
         ctrl_z: list of z coordinates of control points for the toroidal section"""
     print("Plotting combined geometry...")
-    fig = plt.figure(figsize=(14,4))
-    gs = fig.add_gridspec(1,3, width_ratios=[1,1,1])
+    fig = plt.figure(figsize=(11,8))
+    gs = fig.add_gridspec(2,3, width_ratios=[1, 1, 1], height_ratios=[1, 1], hspace=0.1)
     #ax1.set_axis_off()
     # Left 3D axis
     ax1 = fig.add_subplot(gs[0,0], projection='3d')
     # Middle 2D axis
-    ax2 = fig.add_subplot(gs[0,1])
+    ax2 = fig.add_subplot(gs[1,0])
     # Right 2D axis
-    ax3 = fig.add_subplot(gs[0,2])
+    ax3 = fig.add_subplot(gs[0:,1:], projection='3d')
     ax1.plot(points_3d[0], points_3d[1], points_3d[2], color = 'k', label="Toroidal Section")
     for j, ctrl_pt in enumerate(ctrl_3d):
         ax1.scatter(ctrl_pt[0], ctrl_pt[1], ctrl_pt[2],
@@ -91,5 +92,15 @@ def plot_geometry(points_2d, ctrl_2d,
     ax2.set_aspect('equal', adjustable='box')
     ax2.set_title("Poloidal Cross Section")
     ax3.set_aspect('equal', adjustable='box')
-    plt.tight_layout()
+    ax3.set_title("Geometry")
+    ax3.set_xlabel("X")
+    ax3.set_ylabel("Y")
+    ax3.set_zlabel("Z")
+    for i, x_section in enumerate(moved_points_3d[0]):
+        ax3.plot(x_section, moved_points_3d[1][i], moved_points_3d[2][i], color=cfg.color[i])
+    ax3.plot(points_3d[0], points_3d[1], points_3d[2], color = 'k', linestyle = '--')
+    ax3.set_xlim(-1.0, 1.0)
+    ax3.set_ylim(-1.0, 1.0)
+    ax3.set_zlim(-1.0, 1.0)
+    # plt.tight_layout()
     plt.savefig("combined_geometry.pdf")
