@@ -34,16 +34,16 @@ if __name__ == "__main__":
     for i, poloidal_file in enumerate(poloidal_sections):
         poloid_file = get_geometry_parameters_from_poloidal_file("./inputs/" +
                                                     poloidal_file + ".json")
-        x, y, ctrl_x, ctrl_y = build_sketch_sector(poloid_file['theta'],
+        x_p, y_p, ctrl_xp, ctrl_yp = build_sketch_sector(poloid_file['theta'],
                                                    poloid_file['radius'],
                                                    poloid_file['degree'],
                                                    poloid_file['weights'])
-        x_collections.append(x)
-        y_collections.append(y)
-        ctrl_x_collections.append(ctrl_x)
-        ctrl_y_collections.append(ctrl_y)
+        x_collections.append(x_p)
+        y_collections.append(y_p)
+        ctrl_x_collections.append(ctrl_xp)
+        ctrl_y_collections.append(ctrl_yp)
         # moved_points = move_poloidal_section_origin([x, y], toroidal_coordinates[i])
-        moved_points = rotate_poloidal_section([x, y, [0.0]*len(x)],
+        moved_points = rotate_poloidal_section([x_p, y_p, [0.0]*len(x_p)],
                                                toroidal_coordinates[i],
                                                toroidal_tangents[i])
         x_moved_collections.append(moved_points[0])

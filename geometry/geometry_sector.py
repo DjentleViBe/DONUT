@@ -67,7 +67,7 @@ def build_sketch_sector_toroidal(theta, phi, radius, degree, weights):
                                 knot,
                                 u_start,
                                 u_end])
-    return zip(*curve_points), zip(*ctrl_pts)
+    return zip(*curve_points), zip(*ctrl_ext)
 
 def get_toroidal_coordinates_tangent(section_limits, points_3d):
     """Extract the toroidal coordinates (x, y, z) from the 3D points of 
