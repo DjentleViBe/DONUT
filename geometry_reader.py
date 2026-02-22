@@ -52,7 +52,8 @@ def get_geometry_parameters_from_toroidal_file(toroidal_file):
         radius = data.get("radius")
         weights = data.get("weights")
         degree = data.get("degree")
+        sections = data.get("sections")
         param_num_sector_toroidal(nval, theta, phi, radius)
         return {"N_t": nval, "theta": theta, "phi": phi,
                 "radius": radius, "weights": weights,
-                "degree": degree}
+                "degree": degree, "sections": sections}
