@@ -1,6 +1,7 @@
 """Plotting functions for DONUT geometry."""
 import matplotlib.pyplot as plt
 import config as cfg
+import numpy as np
 
 def poloidal_cross_section(x, y, ctrl_x, ctrl_y):
     """Plot the poloidal cross section of the geometry.
@@ -81,6 +82,9 @@ def plot_geometry(points_2d, ctrl_2d,
     ax1.set_xlim(-1.0, 1.0)
     ax1.set_ylim(-1.0, 1.0)
     ax1.set_zlim(-1.0, 1.0)
+    ax1.set_xticks(np.arange(-1.0, 1.1, step=0.5))
+    ax1.set_yticks(np.arange(-1.0, 1.1, step=0.5))
+    ax1.set_zticks(np.arange(-1.0, 1.1, step=0.5))
     ax1.set_title("Toroidal Cross Section")
 
     for i, x_section in enumerate(points_2d[0]):
@@ -90,7 +94,10 @@ def plot_geometry(points_2d, ctrl_2d,
                     color = cfg.color[j], marker='x')
     ax2.grid(linestyle='--', color='gray', linewidth=0.2)
     ax2.set_aspect('equal', adjustable='box')
+    ax2.set_xticks(np.arange(-1.0, 1.1, step=0.5))
+    ax2.set_yticks(np.arange(-1.0, 1.1, step=0.5))
     ax2.set_title("Poloidal Cross Section")
+
     ax3.set_aspect('equal', adjustable='box')
     ax3.set_title("Geometry")
     ax3.set_xlabel("X")
@@ -102,5 +109,8 @@ def plot_geometry(points_2d, ctrl_2d,
     ax3.set_xlim(-1.0, 1.0)
     ax3.set_ylim(-1.0, 1.0)
     ax3.set_zlim(-1.0, 1.0)
+    ax3.set_xticks(np.arange(-1.0, 1.1, step=0.5))
+    ax3.set_yticks(np.arange(-1.0, 1.1, step=0.5))
+    ax3.set_zticks(np.arange(-1.0, 1.1, step=0.5))
     # plt.tight_layout()
     plt.savefig("combined_geometry.pdf")
