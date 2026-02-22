@@ -5,6 +5,7 @@ operations such as evaluating NURBS curves, converting polar to Cartesian coordi
 and generating knot vectors for B-splines.
 """
 import math
+import numpy as np
 
 def cox_de_boor(u, i, p, knot):
     """
@@ -186,3 +187,78 @@ def nurbs_curve_periodic(inputs, num_points=200):
         curve.append([c/den for c in num])
 
     return curve
+
+def move_poloidal_section_origin(points, origin):
+    """Move the origin of a poloidal section to a new location.
+    Args:
+        points: list of (x, y) coordinates for the poloidal section
+        origin: tuple of (x, y) coordinates for the new origin
+    Returns:
+        list of (x, y) coordinates for the poloidal section with the new origin"""
+    moved_x = [value - origin[0] for value in points[0]]
+    moved_y = [value - origin[1] for value in points[1]]
+    return [moved_x, moved_y, [0.0]*len(moved_x)]
+
+def normalize(v, eps=1e-12):
+    """Normalize a vector to unit length.
+    Args:       v: input vector (array-like)
+                eps: small value to avoid division by zero
+    Returns:    Normalized vector of the same shape as input.
+    Raises:     ValueError if the input vector has zero length.
+    """
+    norm = np.linalg.norm(v)
+    if norm < eps:
+        raise ValueError("Cannot normalize zero-length vector.")
+    return v / norm
+
+def rotation_matrix_from_z_to_vector(target_vector):
+    """
+    Returns a 3x3 rotation matrix that rotates (0,0,1) to target_vector.
+    """
+    k = np.array([0.0, 0.0, 1.0])
+    v = normalize(np.array(target_vector, dtype=float))
+
+    # If vectors are already aligned
+    if np.allclose(v, k):
+        return np.eye(3)
+
+    # If vectors are opposite
+    if np.allclose(v, -k):
+        # Rotate 180 degrees around X-axis (or any perpendicular axis)
+        return np.array([
+            [1,  0,  0],
+            [0, -1,  0],
+            [0,  0, -1]
+        ])
+
+    axis = normalize(np.cross(k, v))
+    cos_theta = np.dot(k, v)
+    theta = np.arccos(np.clip(cos_theta, -1.0, 1.0))
+
+    kval = np.array([
+        [0, -axis[2], axis[1]],
+        [axis[2], 0, -axis[0]],
+        [-axis[1], axis[0], 0]
+    ])
+
+    rval = (
+        np.eye(3) +
+        np.sin(theta) * kval +
+        (1 - np.cos(theta)) * (kval @ kval)
+    )
+
+    return rval
+
+def rotate_poloidal_section(points, center, vector):
+    """
+    Rotate Nx3 array of points about 'center'
+    so that (0,0,1) aligns with target_vector.
+    """
+    points = np.asarray(points, dtype=float)
+    center = np.asarray(center, dtype=float)
+
+    rval = rotation_matrix_from_z_to_vector(vector)
+
+    translated = points
+    rotated = rval @ translated
+    return rotated + center[:, None]
