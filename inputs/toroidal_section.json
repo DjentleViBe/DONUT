@@ -1,0 +1,14 @@
+{
+    "main_sections":[
+        "poloidal_section_1", 
+        "poloidal_section_2",
+        "poloidal_section_3",
+        "poloidal_section_4"],
+    "N_t": 4,
+    "phi": [0, 90, 180, 270],
+    "theta": [95, 85, 95, 90],
+    "radius": [1.0, 1.0, 1.0, 1.0],
+    "weights": [1.0, 1.0, 1.0, 1.0],
+    "sections": [0.0, 0.33, 0.5, 0.75],
+    "degree": 3
+}
