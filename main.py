@@ -8,7 +8,7 @@ from geometry.geometry_reader import get_poloidal_sections_from_toroidal_file, \
                             get_geometry_parameters_from_poloidal_file,\
                             get_geometry_parameters_from_toroidal_file
 from geometry.geometry_sector import build_sketch_sector, build_sketch_sector_toroidal, \
-                    get_toroidal_coordinates_tangent
+                    get_toroidal_coordinates_tangent, build_guide_vane
 from geometry.geometry_plotter import plot_geometry
 from geometry.geometry_operations import rotate_poloidal_section
 
@@ -49,6 +49,25 @@ if __name__ == "__main__":
         x_moved_collections.append(moved_points[0])
         y_moved_collections.append(moved_points[1])
         z_moved_collections.append(moved_points[2])
+    guide_vane_collections = []
+    N = len(poloidal_sections)
+    for i in range(N):
+        next_i = (i + 1) % N
+        guide_vane_collections.append(
+            build_guide_vane(
+                [x_moved_collections[i],
+                y_moved_collections[i],
+                z_moved_collections[i]],
+
+                [x_moved_collections[next_i],
+                y_moved_collections[next_i],
+                z_moved_collections[next_i]],
+
+                toroidal_tangents[i],
+                toroidal_tangents[next_i]
+            )
+        )
     plot_geometry([x_collections, y_collections], [ctrl_x_collections, ctrl_y_collections],
                   [x, y, z], [ctrl_x, ctrl_y, ctrl_z],
-                  [x_moved_collections, y_moved_collections, z_moved_collections])
+                  [x_moved_collections, y_moved_collections, z_moved_collections],
+                  guide_vane_collections)

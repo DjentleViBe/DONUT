@@ -25,7 +25,22 @@ def cox_de_boor(u, i, p, knot):
         right = (knot[i+p+1] - u) / (knot[i+p+1] - knot[i+1]) * cox_de_boor(u, i+1, p-1, knot)
     return left + right
 
-def nurbs_curve(ctrl_pts, weights, degree, knot, num_points=100):
+def generate_clamped_knots(n_ctrl, degree):
+    n = n_ctrl
+    p = degree
+    m = n + p + 1
+    knots = []
+
+    for i in range(m):
+        if i <= p:
+            knots.append(0.0)
+        elif i >= n:
+            knots.append(1.0)
+        else:
+            knots.append((i - p) / (n - p))
+    return knots
+
+def nurbs_curve(ctrl_pts, weights, degree, num_points=100):
     """
     Evaluate a NURBS curve without external libraries.
     ctrl_pts : list of [x,y] or [x,y,z] control points
@@ -36,6 +51,7 @@ def nurbs_curve(ctrl_pts, weights, degree, knot, num_points=100):
     """
     n = len(ctrl_pts)
     curve_pts = []
+    knot = generate_clamped_knots(len(ctrl_pts), degree)
 
     u_start = knot[degree]
     u_end = knot[-degree-1]

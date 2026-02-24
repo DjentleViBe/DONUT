@@ -51,7 +51,8 @@ def toroidal_cross_section(xyz, ctrl_pts):
 
 def plot_geometry(points_2d, ctrl_2d,
                   points_3d, ctrl_3d,
-                  moved_points_3d):
+                  moved_points_3d,
+                  guide_vane_collections):
     """Plot the combined geometry of the poloidal and toroidal sections.
     Args:        points_2d: list of (x, y) coordinates for each poloidal section
         ctrl_2d: list of (x, y) coordinates of control points for each poloidal section
@@ -105,6 +106,13 @@ def plot_geometry(points_2d, ctrl_2d,
     ax3.set_zlabel("Z")
     for i, x_section in enumerate(moved_points_3d[0]):
         ax3.plot(x_section, moved_points_3d[1][i], moved_points_3d[2][i], color=cfg.color[i])
+    for j, poloidal_section in enumerate(guide_vane_collections):
+        for k, guide_vane in enumerate(poloidal_section):
+            x = [p[0] for p in guide_vane]
+            y = [p[1] for p in guide_vane]
+            z = [p[2] for p in guide_vane]
+            ax3.plot(x, y, z, color = 'k', lw = 0.1, alpha=0.2)
+
     ax3.plot(points_3d[0], points_3d[1], points_3d[2], color = 'k', linestyle = '--')
     ax3.set_xlim(-1.0, 1.0)
     ax3.set_ylim(-1.0, 1.0)
@@ -112,5 +120,4 @@ def plot_geometry(points_2d, ctrl_2d,
     ax3.set_xticks(np.arange(-1.0, 1.1, step=0.5))
     ax3.set_yticks(np.arange(-1.0, 1.1, step=0.5))
     ax3.set_zticks(np.arange(-1.0, 1.1, step=0.5))
-    # plt.tight_layout()
     plt.savefig("combined_geometry.pdf")
