@@ -2,6 +2,8 @@
 import matplotlib.pyplot as plt
 import config as cfg
 import numpy as np
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+from stl import mesh
 
 def poloidal_cross_section(x, y, ctrl_x, ctrl_y):
     """Plot the poloidal cross section of the geometry.
@@ -49,10 +51,28 @@ def toroidal_cross_section(xyz, ctrl_pts):
     plt.savefig("toroidal_cross_section.pdf")
     return ax
 
+def plot_stl(ax, filename, color='lightblue', alpha=0.2):
+    m = mesh.Mesh.from_file(filename)
+
+    # triangles: (N,3,3)
+    triangles = m.vectors
+
+    poly = Poly3DCollection(triangles, alpha=alpha)
+    poly.set_facecolor(color)
+    poly.set_edgecolor('k')
+
+    ax.add_collection3d(poly)
+
+    # autoscale
+    scale = m.points.flatten()
+    ax.auto_scale_xyz(scale, scale, scale)
+    poly.set_linewidth(0.05)
+
 def plot_geometry(points_2d, ctrl_2d,
                   points_3d, ctrl_3d,
                   moved_points_3d,
-                  guide_vane_collections):
+                  guide_vane_collections,
+                  stlfile):
     """Plot the combined geometry of the poloidal and toroidal sections.
     Args:        points_2d: list of (x, y) coordinates for each poloidal section
         ctrl_2d: list of (x, y) coordinates of control points for each poloidal section
@@ -111,7 +131,7 @@ def plot_geometry(points_2d, ctrl_2d,
             x = [p[0] for p in guide_vane]
             y = [p[1] for p in guide_vane]
             z = [p[2] for p in guide_vane]
-            ax3.plot(x, y, z, color = 'k', lw = 0.1, alpha=0.2)
+            ax1.plot(x, y, z, color = 'k', lw = 0.1, alpha=0.2)
 
     ax3.plot(points_3d[0], points_3d[1], points_3d[2], color = 'k', linestyle = '--')
     ax3.set_xlim(-1.0, 1.0)
@@ -120,4 +140,5 @@ def plot_geometry(points_2d, ctrl_2d,
     ax3.set_xticks(np.arange(-1.0, 1.1, step=0.5))
     ax3.set_yticks(np.arange(-1.0, 1.1, step=0.5))
     ax3.set_zticks(np.arange(-1.0, 1.1, step=0.5))
+    plot_stl(ax3, stlfile)
     plt.savefig("combined_geometry.pdf")
