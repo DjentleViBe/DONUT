@@ -4,6 +4,7 @@ It orchestrates the reading of geometry parameters from input files,
 building the sketches of the sectors, and plotting the poloidal cross 
 section of the geometry.
 """
+import numpy as np
 from geometry.geometry_reader import get_poloidal_sections_from_toroidal_file, \
                             get_geometry_parameters_from_poloidal_file,\
                             get_geometry_parameters_from_toroidal_file
@@ -11,6 +12,7 @@ from geometry.geometry_sector import build_sketch_sector, build_sketch_sector_to
                     get_toroidal_coordinates_tangent, build_guide_vane
 from geometry.geometry_plotter import plot_geometry
 from geometry.geometry_operations import rotate_poloidal_section
+from geometry.geometry_build import loft_revolved, write_stl, merge_stls
 
 if __name__ == "__main__":
     poloidal_sections = get_poloidal_sections_from_toroidal_file("./inputs/toroidal_section.json")
@@ -50,6 +52,7 @@ if __name__ == "__main__":
         y_moved_collections.append(moved_points[1])
         z_moved_collections.append(moved_points[2])
     guide_vane_collections = []
+    file_list = []
     N = len(poloidal_sections)
     for i in range(N):
         next_i = (i + 1) % N
@@ -67,7 +70,11 @@ if __name__ == "__main__":
                 toroidal_tangents[next_i]
             )
         )
+        vertices, faces = loft_revolved(np.asarray(guide_vane_collections[i]))
+        write_stl(vertices, faces, f"revolved_surface+{i}.stl")
+        file_list.append(f"revolved_surface+{i}.stl")
+    merge_stls(file_list, "./outputs/combined.stl")
     plot_geometry([x_collections, y_collections], [ctrl_x_collections, ctrl_y_collections],
                   [x, y, z], [ctrl_x, ctrl_y, ctrl_z],
                   [x_moved_collections, y_moved_collections, z_moved_collections],
-                  guide_vane_collections)
+                  guide_vane_collections, "./outputs/combined.stl")
