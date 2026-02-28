@@ -71,8 +71,8 @@ if __name__ == "__main__":
             )
         )
         vertices, faces = loft_revolved(np.asarray(guide_vane_collections[i]))
-        write_stl(vertices, faces, f"revolved_surface+{i}.stl")
-        file_list.append(f"revolved_surface+{i}.stl")
+        write_stl(vertices, faces, f"./outputs/revolved_surface+{i}.stl")
+        file_list.append(f"./outputs/revolved_surface+{i}.stl")
     merge_stls(file_list, "./outputs/combined.stl")
     plot_geometry([x_collections, y_collections], [ctrl_x_collections, ctrl_y_collections],
                   [x, y, z], [ctrl_x, ctrl_y, ctrl_z],
