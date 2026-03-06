@@ -13,6 +13,7 @@ from geometry.geometry_sector import build_sketch_sector, build_sketch_sector_to
 from geometry.geometry_plotter import plot_geometry
 from geometry.geometry_operations import rotate_poloidal_section
 from geometry.geometry_build import loft_revolved, write_stl, merge_stls
+from objectives import compute_elongation
 
 if __name__ == "__main__":
     poloidal_sections = get_poloidal_sections_from_toroidal_file("./inputs/toroidal_section.json")
@@ -53,6 +54,7 @@ if __name__ == "__main__":
         z_moved_collections.append(moved_points[2])
     guide_vane_collections = []
     file_list = []
+    elongation = []
     N = len(poloidal_sections)
     for i in range(N):
         next_i = (i + 1) % N
@@ -73,8 +75,12 @@ if __name__ == "__main__":
         vertices, faces = loft_revolved(np.asarray(guide_vane_collections[i]))
         write_stl(vertices, faces, f"./outputs/revolved_surface+{i}.stl")
         file_list.append(f"./outputs/revolved_surface+{i}.stl")
+        epsilon_max = max([compute_elongation(np.asarray(guide_vane_collections[i])[:, j, :]) for j in range(100)])
+        elongation.append(epsilon_max)
     merge_stls(file_list, "./outputs/combined.stl")
     plot_geometry([x_collections, y_collections], [ctrl_x_collections, ctrl_y_collections],
                   [x, y, z], [ctrl_x, ctrl_y, ctrl_z],
                   [x_moved_collections, y_moved_collections, z_moved_collections],
                   guide_vane_collections, "./outputs/combined.stl")
+    print(f"Max elongation : {max(elongation)}")
+    
