@@ -1,11 +1,16 @@
+"""List of objectives for minimization
+"""
 import numpy as np
 
 def compute_elongation(cross_section):
-    Z_max = np.max(cross_section[:, 2])
-    Z_min = np.min(cross_section[:, 2])
-    R = np.sqrt(cross_section[:, 0]**2 + cross_section[:, 1]**2)
-    R_max = np.max(R)
-    R_min = np.min(R)
-    epsilon = (Z_max - Z_min) / (R_max - R_min)
+    """
+    Computes elongatio gicing cross section
+    """
+    z_max = np.max(cross_section[:, 2])
+    z_min = np.min(cross_section[:, 2])
+    r_val = np.sqrt(cross_section[:, 0]**2 + cross_section[:, 1]**2)
+    r_max = np.max(r_val)
+    r_min = np.min(r_val)
+    epsilon = (z_max - z_min) / (r_max - r_min)
 
     return epsilon
