@@ -6,6 +6,7 @@ in the input directory and read the JSON files to extract the necessary
 parameters for building the sketches of the sectors.
 """
 import json
+import numpy as np
 from geometry.geometry_check import param_num_sector, param_num_sector_toroidal
 
 def get_poloidal_sections_from_toroidal_file(filename):
@@ -57,3 +58,33 @@ def get_geometry_parameters_from_toroidal_file(toroidal_file):
         return {"N_t": nval, "theta": theta, "phi": phi,
                 "radius": radius, "weights": weights,
                 "degree": degree, "sections": sections}
+
+def linearize_data(toroidal_file):
+    print("linearizing data")
+    toroidal_array = []
+    poloidal_array = []
+    toroidal_prop = get_geometry_parameters_from_toroidal_file(toroidal_file)
+    phi = np.array(toroidal_prop.get("phi"))
+    theta = np.array(toroidal_prop.get("theta"))
+    radius = np.array(toroidal_prop.get("radius"))
+    weights = np.array(toroidal_prop.get("weights"))
+    sections = np.array(toroidal_prop.get("sections"))
+    combined = np.concatenate([phi, theta, radius, weights, sections])
+    toroidal_array.append(combined)
+    # loop through the poloidal files
+    for i in range (0, toroidal_prop['N_t']):
+        with open("./inputs/poloidal_section_" + str(i + 1) + ".json", "r", encoding="utf-8") as f:
+            data = json.load(f)
+            nval = data.get("N_s")
+            theta = np.array(data.get("theta"))
+            radius = np.array(data.get("radius"))
+            weights = np.array(data.get("weights"))
+            degree = data.get("degree")
+
+            combined = np.concatenate([theta, radius, weights])
+            poloidal_array.append(combined)
+    poloidal_flat = np.concatenate(poloidal_array) if poloidal_array else np.array([])
+    toroidal_flat = np.concatenate(toroidal_array) if toroidal_array else np.array([])
+    x0 = np.concatenate([poloidal_flat, toroidal_flat])
+    print(f"Total number of elements to optimize: {len(x0)}")
+    return x0
