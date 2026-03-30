@@ -60,10 +60,17 @@ def get_geometry_parameters_from_toroidal_file(toroidal_file):
                 "degree": degree, "sections": sections}
 
 def linearize_data(toroidal_file):
+    """
+    Output : 
+    Toroidal - [phi, theta, radius, weights, sections] * N_t
+    Poloidal - [theta, radius, weights] * N_s
+    """
     print("linearizing data")
     toroidal_array = []
     poloidal_array = []
+    format = []
     toroidal_prop = get_geometry_parameters_from_toroidal_file(toroidal_file)
+    format.append(toroidal_prop.get("N_t"))
     phi = np.array(toroidal_prop.get("phi"))
     theta = np.array(toroidal_prop.get("theta"))
     radius = np.array(toroidal_prop.get("radius"))
@@ -83,8 +90,14 @@ def linearize_data(toroidal_file):
 
             combined = np.concatenate([theta, radius, weights])
             poloidal_array.append(combined)
+            format.append(nval)
     poloidal_flat = np.concatenate(poloidal_array) if poloidal_array else np.array([])
     toroidal_flat = np.concatenate(toroidal_array) if toroidal_array else np.array([])
     x0 = np.concatenate([poloidal_flat, toroidal_flat])
     print(f"Total number of elements to optimize: {len(x0)}")
+    print(format)
+    return x0, format
+
+def delinearize_data(x0, format):
+    
     return x0
