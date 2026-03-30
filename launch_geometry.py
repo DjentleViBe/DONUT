@@ -1,3 +1,11 @@
+"""
+This module serves as the main entry point for the geometry construction process. 
+It reads the input geometry data, constructs the geometry based on the 
+provided parameters, and generates the corresponding STL 
+files for visualization and further processing. 
+The module also computes the elongation of the guide vanes 
+and plots the geometry for verification.
+"""
 import numpy as np
 from geometry.geometry_reader import get_poloidal_sections_from_toroidal_file, \
                             get_geometry_parameters_from_poloidal_file,\
@@ -10,11 +18,22 @@ from geometry.geometry_build import loft_revolved, write_stl, merge_stls
 from objectives import compute_elongation
 
 def geometry_init():
+    """
+    Initialize the geometry by reading the input files and extracting the necessary parameters.
+    """
     poloidal_sections = get_poloidal_sections_from_toroidal_file("./inputs/toroidal_section.json")
     toroid_file = get_geometry_parameters_from_toroidal_file("./inputs/toroidal_section.json")
     return poloidal_sections, toroid_file
 
 def geometry_construct(toroidal_sections, poloidal_sections, mode):
+    """
+    Construct the geometry based on the provided toroidal and poloidal sections.
+    Args:
+    toroidal_sections: A dictionary containing the parameters for the toroidal section.
+    poloidal_sections: A list of dictionaries containing the parameters for each poloidal section.
+    mode: An integer indicating the mode of operation (0 for reading from files, 
+            1 for using provided data).
+    """
     x_collections = []
     y_collections = []
     x_moved_collections = []
@@ -58,9 +77,9 @@ def geometry_construct(toroidal_sections, poloidal_sections, mode):
     guide_vane_collections = []
     file_list = []
     elongation = []
-    N = len(poloidal_sections)
-    for i in range(N):
-        next_i = (i + 1) % N
+    nval = len(poloidal_sections)
+    for i in range(nval):
+        next_i = (i + 1) % nval
         guide_vane_collections.append(
             build_guide_vane(
                 [x_moved_collections[i],
