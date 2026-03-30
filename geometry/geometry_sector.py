@@ -28,7 +28,7 @@ def build_sketch_sector(theta, radius, degree, weights):
         ctrl_pts,
         degree
     )
-    weights_ext = weights + weights[:degree]
+    weights_ext = list(weights) + list(weights[:degree])
     # Compute curve points
     curve_points = nurbs_curve_periodic(
         [ctrl_ext,
@@ -60,7 +60,7 @@ def build_sketch_sector_toroidal(theta, phi, radius, degree, weights):
         ctrl_pts,
         degree
     )
-    weights_ext = weights + weights[:degree]
+    weights_ext = list(weights) + list(weights[:degree])
     # Compute curve points
     curve_points = nurbs_curve_periodic(
                                 [ctrl_ext,

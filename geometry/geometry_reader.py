@@ -99,5 +99,33 @@ def linearize_data(toroidal_file):
     return x0, format
 
 def delinearize_data(x0, format):
-    
-    return x0
+    nval = format[0]
+    phi = x0[-nval*5 : -nval*4]
+    theta = x0[-nval*4 : -nval*3]
+    radius = x0[-nval*3 : -nval*2]
+    weights = x0[-nval*2 : -nval]
+    sections = x0[-nval : ]
+    toroidal_sections = {"N_t": nval, "theta": theta, "phi": phi,
+                "radius": radius, "weights": weights,
+                "degree": 3, "sections": sections}
+    poloidal_sections= []
+    idx = 0
+
+    for i in range(format[0]):
+        N_s = format[i + 1]
+        
+        start = idx
+        end = idx + 3 * N_s
+        theta  = x0[start : start + N_s]
+        radius = x0[start + N_s : start + 2 * N_s]
+        weights = x0[start + 2 * N_s : start + 3 * N_s]
+        poloidal_section = {
+            "N_s": N_s,
+            "theta": theta,
+            "radius": radius,
+            "weights": weights,
+            "degree": 3
+        }
+        poloidal_sections.append(poloidal_section)
+        idx += 3 * N_s
+    return toroidal_sections, poloidal_sections

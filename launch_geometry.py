@@ -14,7 +14,7 @@ def geometry_init():
     toroid_file = get_geometry_parameters_from_toroidal_file("./inputs/toroidal_section.json")
     return poloidal_sections, toroid_file
 
-def geometry_construct(poloidal_sections, toroid_file):
+def geometry_construct(toroidal_sections, poloidal_sections, mode):
     x_collections = []
     y_collections = []
     x_moved_collections = []
@@ -23,21 +23,27 @@ def geometry_construct(poloidal_sections, toroid_file):
     ctrl_x_collections = []
     ctrl_y_collections = []
     (x, y, z), (ctrl_x, ctrl_y, ctrl_z) = build_sketch_sector_toroidal(
-                                                        toroid_file['theta'],
-                                                        toroid_file['phi'],
-                                                        toroid_file['radius'],
-                                                        toroid_file['degree'],
-                                                        toroid_file['weights'])
+                                                        toroidal_sections['theta'],
+                                                        toroidal_sections['phi'],
+                                                        toroidal_sections['radius'],
+                                                        toroidal_sections['degree'],
+                                                        toroidal_sections['weights'])
     toroidal_coordinates, toroidal_tangents = get_toroidal_coordinates_tangent(
-                                                        toroid_file['sections'],
+                                                        toroidal_sections['sections'],
                                                         [x, y, z])
     for i, poloidal_file in enumerate(poloidal_sections):
-        poloid_file = get_geometry_parameters_from_poloidal_file("./inputs/" +
+        if mode == 0:
+            poloid_file = get_geometry_parameters_from_poloidal_file("./inputs/" +
                                                     poloidal_file + ".json")
-        x_p, y_p, ctrl_xp, ctrl_yp = build_sketch_sector(poloid_file['theta'],
-                                                   poloid_file['radius'],
-                                                   poloid_file['degree'],
-                                                   poloid_file['weights'])
+            x_p, y_p, ctrl_xp, ctrl_yp = build_sketch_sector(poloid_file['theta'],
+                                                    poloid_file['radius'],
+                                                    poloid_file['degree'],
+                                                    poloid_file['weights'])
+        else:
+            x_p, y_p, ctrl_xp, ctrl_yp = build_sketch_sector(poloidal_file['theta'],
+                                                    poloidal_file['radius'],
+                                                    poloidal_file['degree'],
+                                                    poloidal_file['weights'])
         x_collections.append(x_p)
         y_collections.append(y_p)
         ctrl_x_collections.append(ctrl_xp)
