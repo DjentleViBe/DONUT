@@ -28,7 +28,7 @@ if __name__ == "__main__":
     geometry_construct(toroidal_sections, poloidal_sections, 1, plot=True, filename="initial_geometry")
 
     result = minimize(geometry_process_optimization, x0, 
-                      args=(format,), method='Nelder-Mead', 
+                      args=(format,), method='L-BFGS-B', 
                       options={'maxiter': 5},
                       callback=callback)
     print("Optimization result:", result)
