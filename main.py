@@ -4,6 +4,7 @@ It orchestrates the reading of geometry parameters from input files,
 building the sketches of the sectors, and plotting the poloidal cross 
 section of the geometry.
 """
+import numpy as np
 from geometry.geometry_process import geometry_process_optimization
 from geometry.geometry_reader import delinearize_data, linearize_data
 from scipy.optimize import minimize
@@ -17,7 +18,7 @@ def callback(xk):
     # recompute objective for logging
     toroidal_sections, poloidal_sections = delinearize_data(xk, format)
     elongation = geometry_calculate(toroidal_sections, poloidal_sections)
-    print(f"Iteration {iteration}: Max elongation = {elongation}")
+    print(f"Iteration {iteration}: Max elongation = {elongation}, xk norm = {np.linalg.norm(xk)}")
 
 if __name__ == "__main__":
     # geometry_process()
