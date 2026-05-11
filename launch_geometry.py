@@ -18,6 +18,8 @@ from geometry.geometry_build import loft_revolved, write_stl, merge_stls
 from objectives import compute_elongation
 
 def softmax_max(x, beta=10.0):
+    """Compute a smooth approximation of the maximum value in the 
+    list x using the softmax function."""
     x = np.asarray(x)
     x = x - np.max(x)  # numerical stability
     return np.log(np.sum(np.exp(beta * x))) / beta
@@ -111,7 +113,7 @@ def geometry_construct(toroidal_sections, poloidal_sections, mode, plot=False, f
         plot_geometry([x_collections, y_collections], [ctrl_x_collections, ctrl_y_collections],
                   [x, y, z], [ctrl_x, ctrl_y, ctrl_z],
                   [x_moved_collections, y_moved_collections, z_moved_collections],
-                  guide_vane_collections, "./outputs/" + filename + ".stl", 
+                  guide_vane_collections, "./outputs/" + filename + ".stl",
                   max_elongation=max(elongation),
                   filename=filename)
     print(f"Max elongation : {max(elongation)}")
@@ -133,7 +135,7 @@ def geometry_calculate(toroidal_sections, poloidal_sections):
     z_moved_collections = []
     ctrl_x_collections = []
     ctrl_y_collections = []
-    (x, y, z), (ctrl_x, ctrl_y, ctrl_z) = build_sketch_sector_toroidal(
+    (x, y, z), (_, _, _) = build_sketch_sector_toroidal(
                                                         toroidal_sections['theta'],
                                                         toroidal_sections['phi'],
                                                         toroidal_sections['radius'],
