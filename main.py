@@ -11,16 +11,14 @@ from geometry.geometry_reader import delinearize_data, linearize_data
 from launch_geometry import geometry_calculate, geometry_construct
 
 ITERATION = 0  # external counter
+ELONGATION = 0.0
 
 def callback(xk):
     """callback function to be called after each optimization iteration. 
     It logs the current iteration number."""
     global ITERATION
     ITERATION += 1
-    # recompute objective for logging
-    toroidal_sections_cb, poloidal_sections_cb = delinearize_data(xk, format)
-    elongation = geometry_calculate(toroidal_sections_cb, poloidal_sections_cb)
-    print(f"Iteration {ITERATION}: Max elongation = {elongation}, xk norm = {np.linalg.norm(xk)}")
+    print(f"\nIteration {ITERATION}: Max elongation = {ELONGATION}, xk norm = {np.linalg.norm(xk)}")
 
 if __name__ == "__main__":
     # geometry_process()
@@ -31,7 +29,7 @@ if __name__ == "__main__":
                        filename="initial_geometry")
 
     result = minimize(geometry_process_optimization, x0,
-                      args=(data_format,), method='L-BFGS-B',
+                      args=(data_format,), method='Nelder-Mead',
                       options={'maxiter': 5},
                       callback=callback)
     print("Optimization result:", result)
