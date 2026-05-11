@@ -25,7 +25,7 @@ def geometry_init():
     toroid_file = get_geometry_parameters_from_toroidal_file("./inputs/toroidal_section.json")
     return poloidal_sections, toroid_file
 
-def geometry_construct(toroidal_sections, poloidal_sections, mode):
+def geometry_construct(toroidal_sections, poloidal_sections, mode, plot=False, filename=None):
     """
     Construct the geometry based on the provided toroidal and poloidal sections.
     Args:
@@ -94,15 +94,83 @@ def geometry_construct(toroidal_sections, poloidal_sections, mode):
                 toroidal_tangents[next_i]
             )
         )
-        vertices, faces = loft_revolved(np.asarray(guide_vane_collections[i]))
-        write_stl(vertices, faces, f"./outputs/revolved_surface+{i}.stl")
-        file_list.append(f"./outputs/revolved_surface+{i}.stl")
+        if plot:
+            vertices, faces = loft_revolved(np.asarray(guide_vane_collections[i]))
+            write_stl(vertices, faces, f"./outputs/revolved_surface+{i}.stl")
+            file_list.append(f"./outputs/revolved_surface+{i}.stl")
         epsilon_max = max(compute_elongation(np.asarray(guide_vane_collections[i])[:, j, :])
                         for j in range(100))
         elongation.append(epsilon_max)
-    merge_stls(file_list, "./outputs/combined.stl")
-    plot_geometry([x_collections, y_collections], [ctrl_x_collections, ctrl_y_collections],
+    if plot:
+        merge_stls(file_list, "./outputs/" + filename + ".stl")
+        plot_geometry([x_collections, y_collections], [ctrl_x_collections, ctrl_y_collections],
                   [x, y, z], [ctrl_x, ctrl_y, ctrl_z],
                   [x_moved_collections, y_moved_collections, z_moved_collections],
-                  guide_vane_collections, "./outputs/combined.stl")
+                  guide_vane_collections, "./outputs/" + filename + ".stl", filename)
     print(f"Max elongation : {max(elongation)}")
+    return max(elongation)
+
+def geometry_calculate(toroidal_sections, poloidal_sections):
+    """
+    Construct the geometry based on the provided toroidal and poloidal sections.
+    Args:
+    toroidal_sections: A dictionary containing the parameters for the toroidal section.
+    poloidal_sections: A list of dictionaries containing the parameters for each poloidal section.
+    mode: An integer indicating the mode of operation (0 for reading from files, 
+            1 for using provided data).
+    """
+    x_collections = []
+    y_collections = []
+    x_moved_collections = []
+    y_moved_collections = []
+    z_moved_collections = []
+    ctrl_x_collections = []
+    ctrl_y_collections = []
+    (x, y, z), (ctrl_x, ctrl_y, ctrl_z) = build_sketch_sector_toroidal(
+                                                        toroidal_sections['theta'],
+                                                        toroidal_sections['phi'],
+                                                        toroidal_sections['radius'],
+                                                        toroidal_sections['degree'],
+                                                        toroidal_sections['weights'])
+    toroidal_coordinates, toroidal_tangents = get_toroidal_coordinates_tangent(
+                                                        toroidal_sections['sections'],
+                                                        [x, y, z])
+    for i, poloidal_file in enumerate(poloidal_sections):
+        x_p, y_p, ctrl_xp, ctrl_yp = build_sketch_sector(poloidal_file['theta'],
+                                                poloidal_file['radius'],
+                                                poloidal_file['degree'],
+                                                poloidal_file['weights'])
+        x_collections.append(x_p)
+        y_collections.append(y_p)
+        ctrl_x_collections.append(ctrl_xp)
+        ctrl_y_collections.append(ctrl_yp)
+        moved_points = rotate_poloidal_section([x_p, y_p, [0.0]*len(x_p)],
+                                               toroidal_coordinates[i],
+                                               toroidal_tangents[i])
+        x_moved_collections.append(moved_points[0])
+        y_moved_collections.append(moved_points[1])
+        z_moved_collections.append(moved_points[2])
+    guide_vane_collections = []
+    elongation = []
+    nval = len(poloidal_sections)
+    for i in range(nval):
+        next_i = (i + 1) % nval
+        guide_vane_collections.append(
+            build_guide_vane(
+                [x_moved_collections[i],
+                y_moved_collections[i],
+                z_moved_collections[i]],
+
+                [x_moved_collections[next_i],
+                y_moved_collections[next_i],
+                z_moved_collections[next_i]],
+
+                toroidal_tangents[i],
+                toroidal_tangents[next_i]
+            )
+        )
+        epsilon_max = max(compute_elongation(np.asarray(guide_vane_collections[i])[:, j, :])
+                        for j in range(100))
+        elongation.append(epsilon_max)
+    # print(f"Max elongation : {max(elongation)}")
+    return max(elongation)
