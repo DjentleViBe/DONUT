@@ -95,7 +95,6 @@ def linearize_data(toroidal_file):
     toroidal_flat = np.concatenate(toroidal_array) if toroidal_array else np.array([])
     x0 = np.concatenate([poloidal_flat, toroidal_flat])
     print(f"Total number of elements to optimize: {len(x0)}")
-    print(format)
     return x0, format
 
 def delinearize_data(x0, format):
