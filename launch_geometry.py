@@ -106,7 +106,9 @@ def geometry_construct(toroidal_sections, poloidal_sections, mode, plot=False, f
         plot_geometry([x_collections, y_collections], [ctrl_x_collections, ctrl_y_collections],
                   [x, y, z], [ctrl_x, ctrl_y, ctrl_z],
                   [x_moved_collections, y_moved_collections, z_moved_collections],
-                  guide_vane_collections, "./outputs/" + filename + ".stl", filename)
+                  guide_vane_collections, "./outputs/" + filename + ".stl", 
+                  max_elongation=max(elongation),
+                  filename=filename)
     print(f"Max elongation : {max(elongation)}")
     return max(elongation)
 
