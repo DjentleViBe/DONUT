@@ -17,6 +17,11 @@ from geometry.geometry_operations import rotate_poloidal_section
 from geometry.geometry_build import loft_revolved, write_stl, merge_stls
 from objectives import compute_elongation
 
+def softmax_max(x, beta=10.0):
+    x = np.asarray(x)
+    x = x - np.max(x)  # numerical stability
+    return np.log(np.sum(np.exp(beta * x))) / beta
+
 def geometry_init():
     """
     Initialize the geometry by reading the input files and extracting the necessary parameters.
