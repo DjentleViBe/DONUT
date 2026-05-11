@@ -71,8 +71,8 @@ def linearize_data(toroidal_file):
     format = []
     toroidal_prop = get_geometry_parameters_from_toroidal_file(toroidal_file)
     format.append(toroidal_prop.get("N_t"))
-    phi = np.array(toroidal_prop.get("phi"))
-    theta = np.array(toroidal_prop.get("theta"))
+    phi = np.array(toroidal_prop.get("phi")) / 360.0
+    theta = np.array(toroidal_prop.get("theta")) / 360.0
     radius = np.array(toroidal_prop.get("radius"))
     weights = np.array(toroidal_prop.get("weights"))
     sections = np.array(toroidal_prop.get("sections"))
@@ -83,7 +83,7 @@ def linearize_data(toroidal_file):
         with open("./inputs/poloidal_section_" + str(i + 1) + ".json", "r", encoding="utf-8") as f:
             data = json.load(f)
             nval = data.get("N_s")
-            theta = np.array(data.get("theta"))
+            theta = np.array(data.get("theta")) / 360.0
             radius = np.array(data.get("radius"))
             weights = np.array(data.get("weights"))
             degree = data.get("degree")
@@ -99,8 +99,8 @@ def linearize_data(toroidal_file):
 
 def delinearize_data(x0, format):
     nval = format[0]
-    phi = x0[-nval*5 : -nval*4]
-    theta = x0[-nval*4 : -nval*3]
+    phi = x0[-nval*5 : -nval*4] * 360.0
+    theta = x0[-nval*4 : -nval*3] * 360.0
     radius = x0[-nval*3 : -nval*2]
     weights = x0[-nval*2 : -nval]
     sections = x0[-nval : ]
@@ -115,7 +115,7 @@ def delinearize_data(x0, format):
         
         start = idx
         end = idx + 3 * N_s
-        theta  = x0[start : start + N_s]
+        theta  = x0[start : start + N_s] * 360.0
         radius = x0[start + N_s : start + 2 * N_s]
         weights = x0[start + 2 * N_s : start + 3 * N_s]
         poloidal_section = {
