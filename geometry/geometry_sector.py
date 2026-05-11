@@ -4,10 +4,12 @@ This module contains functions to build the sketch of a sector based on the geom
 read from the input files. It uses the geometry operations to compute the NURBS curve points
 and control points, and prepares the data for plotting.
 """
-from geometry_operations import nurbs_curve_periodic, \
+from geometry.geometry_operations import nurbs_curve_periodic, \
                                 get_cartesian_coordinates_2d, \
                                 get_cartesian_coordinates_3d, \
                                 generate_periodic_data
+from geometry.geometry_operations import nurbs_curve
+import numpy as np
 
 def build_sketch_sector(theta, radius, degree, weights):
     """Build the sketch of a sector based on the geometry parameters.
@@ -26,7 +28,7 @@ def build_sketch_sector(theta, radius, degree, weights):
         ctrl_pts,
         degree
     )
-    weights_ext = weights + weights[:degree]
+    weights_ext = list(weights) + list(weights[:degree])
     # Compute curve points
     curve_points = nurbs_curve_periodic(
         [ctrl_ext,
@@ -58,7 +60,7 @@ def build_sketch_sector_toroidal(theta, phi, radius, degree, weights):
         ctrl_pts,
         degree
     )
-    weights_ext = weights + weights[:degree]
+    weights_ext = list(weights) + list(weights[:degree])
     # Compute curve points
     curve_points = nurbs_curve_periodic(
                                 [ctrl_ext,
@@ -67,7 +69,7 @@ def build_sketch_sector_toroidal(theta, phi, radius, degree, weights):
                                 knot,
                                 u_start,
                                 u_end])
-    return zip(*curve_points), zip(*ctrl_pts)
+    return zip(*curve_points), zip(*ctrl_ext)
 
 def get_toroidal_coordinates_tangent(section_limits, points_3d):
     """Extract the toroidal coordinates (x, y, z) from the 3D points of 
@@ -96,3 +98,36 @@ def get_toroidal_coordinates_tangent(section_limits, points_3d):
                        points_3d[2][index] - points_3d[2][index - 1])
         toroidal_tangents.append(tangent)
     return toroidal_coordinates, toroidal_tangents
+
+def guide_vane(startpoint, endpoint, startvector, endvector, start_w, end_w):
+    """
+    Constructs spline between start and end point with 2 poins in between
+    """
+    P0 = np.array(startpoint)
+    P3 = np.array(endpoint)
+
+    T0 = np.array(startvector)
+    T1 = np.array(endvector)
+
+    P1 = P0 + start_w * T0
+    P2 = P3 + end_w * T1   # scaling vector only
+
+    ctrl_pts = [P0, P1, P2, P3]
+
+    spline_3d = nurbs_curve(ctrl_pts, [1.0]*4, 3)
+    return spline_3d
+
+def build_guide_vane(section_1, section_2, tangent_1, tangent_2):
+    """
+    Builds guide vane from 2 closed sections
+    """
+    guide_vanes = []
+    for j, section in enumerate(section_1[0]):
+        u_unit = tangent_1 / np.linalg.norm(tangent_1)
+        v_unit = tangent_2 / np.linalg.norm(tangent_2)
+        guide_vanes.append(guide_vane([section_1[0][j], section_1[1][j],section_1[2][j]],
+                                      [section_2[0][j], section_2[1][j],section_2[2][j]],
+                                      u_unit, v_unit,
+                                      0.5, -0.5))
+        
+    return guide_vanes

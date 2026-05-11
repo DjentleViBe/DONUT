@@ -4,51 +4,37 @@ It orchestrates the reading of geometry parameters from input files,
 building the sketches of the sectors, and plotting the poloidal cross 
 section of the geometry.
 """
-from geometry_reader import get_poloidal_sections_from_toroidal_file, \
-                            get_geometry_parameters_from_poloidal_file,\
-                            get_geometry_parameters_from_toroidal_file
-from sector import build_sketch_sector, build_sketch_sector_toroidal, \
-                    get_toroidal_coordinates_tangent
-from geometry_plotter import plot_geometry
-from geometry_operations import rotate_poloidal_section
+import numpy as np
+from scipy.optimize import minimize
+from geometry.geometry_process import geometry_process_optimization
+from geometry.geometry_reader import delinearize_data, linearize_data
+from launch_geometry import geometry_calculate, geometry_construct
+
+ITERATION = 0  # external counter
+
+def callback(xk):
+    """callback function to be called after each optimization iteration. 
+    It logs the current iteration number."""
+    global ITERATION
+    ITERATION += 1
+    # recompute objective for logging
+    toroidal_sections_cb, poloidal_sections_cb = delinearize_data(xk, format)
+    elongation = geometry_calculate(toroidal_sections_cb, poloidal_sections_cb)
+    print(f"Iteration {ITERATION}: Max elongation = {elongation}, xk norm = {np.linalg.norm(xk)}")
 
 if __name__ == "__main__":
-    poloidal_sections = get_poloidal_sections_from_toroidal_file("./inputs/toroidal_section.json")
-    x_collections = []
-    y_collections = []
-    x_moved_collections = []
-    y_moved_collections = []
-    z_moved_collections = []
-    ctrl_x_collections = []
-    ctrl_y_collections = []
-    toroid_file = get_geometry_parameters_from_toroidal_file("./inputs/toroidal_section.json")
-    (x, y, z), (ctrl_x, ctrl_y, ctrl_z) = build_sketch_sector_toroidal(
-                                                        toroid_file['theta'],
-                                                        toroid_file['phi'],
-                                                        toroid_file['radius'],
-                                                        toroid_file['degree'],
-                                                        toroid_file['weights'])
-    toroidal_coordinates, toroidal_tangents = get_toroidal_coordinates_tangent(
-                                                        toroid_file['sections'],
-                                                        [x, y, z])
-    for i, poloidal_file in enumerate(poloidal_sections):
-        poloid_file = get_geometry_parameters_from_poloidal_file("./inputs/" +
-                                                    poloidal_file + ".json")
-        x, y, ctrl_x, ctrl_y = build_sketch_sector(poloid_file['theta'],
-                                                   poloid_file['radius'],
-                                                   poloid_file['degree'],
-                                                   poloid_file['weights'])
-        x_collections.append(x)
-        y_collections.append(y)
-        ctrl_x_collections.append(ctrl_x)
-        ctrl_y_collections.append(ctrl_y)
-        # moved_points = move_poloidal_section_origin([x, y], toroidal_coordinates[i])
-        moved_points = rotate_poloidal_section([x, y, [0.0]*len(x)],
-                                               toroidal_coordinates[i],
-                                               toroidal_tangents[i])
-        x_moved_collections.append(moved_points[0])
-        y_moved_collections.append(moved_points[1])
-        z_moved_collections.append(moved_points[2])
-    plot_geometry([x_collections, y_collections], [ctrl_x_collections, ctrl_y_collections],
-                  [x, y, z], [ctrl_x, ctrl_y, ctrl_z],
-                  [x_moved_collections, y_moved_collections, z_moved_collections])
+    # geometry_process()
+    # initial guess
+    x0, data_format = linearize_data("./inputs/toroidal_section.json")
+    toroidal_sections, poloidal_sections = delinearize_data(x0, data_format)
+    geometry_construct(toroidal_sections, poloidal_sections, 1, plot=True,
+                       filename="initial_geometry")
+
+    result = minimize(geometry_process_optimization, x0,
+                      args=(data_format,), method='L-BFGS-B',
+                      options={'maxiter': 5},
+                      callback=callback)
+    print("Optimization result:", result)
+    toroidal_sections, poloidal_sections = delinearize_data(result.x, data_format)
+    geometry_construct(toroidal_sections, poloidal_sections, 1, plot=True,
+                       filename="optimized_geometry")
