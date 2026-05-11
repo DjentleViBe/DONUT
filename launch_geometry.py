@@ -175,4 +175,4 @@ def geometry_calculate(toroidal_sections, poloidal_sections):
                         for j in range(100))
         elongation.append(epsilon_max)
     # print(f"Max elongation : {max(elongation)}")
-    return max(elongation)
+    return np.percentile(elongation, 95)
