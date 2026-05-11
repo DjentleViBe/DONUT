@@ -23,14 +23,13 @@ if __name__ == "__main__":
     # geometry_process()
     # initial guess
     x0, format = linearize_data("./inputs/toroidal_section.json")
+    toroidal_sections, poloidal_sections = delinearize_data(x0, format)
+    geometry_construct(toroidal_sections, poloidal_sections, 1, plot=True, filename="initial_geometry")
+
     result = minimize(geometry_process_optimization, x0, 
                       args=(format,), method='Nelder-Mead', 
                       options={'maxiter': 5},
                       callback=callback)
     print("Optimization result:", result)
-    # plot
-    toroidal_sections, poloidal_sections = delinearize_data(x0, format)
-    geometry_construct(toroidal_sections, poloidal_sections, 1, plot=True, filename="initial_geometry")
-
     toroidal_sections, poloidal_sections = delinearize_data(result.x, format)
     geometry_construct(toroidal_sections, poloidal_sections, 1, plot=True, filename="optimized_geometry")
