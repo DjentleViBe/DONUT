@@ -72,7 +72,7 @@ def plot_geometry(points_2d, ctrl_2d,
                   points_3d, ctrl_3d,
                   moved_points_3d,
                   guide_vane_collections,
-                  stlfile):
+                  stlfile, filename="combined_geometry"):
     """Plot the combined geometry of the poloidal and toroidal sections.
     Args:        points_2d: list of (x, y) coordinates for each poloidal section
         ctrl_2d: list of (x, y) coordinates of control points for each poloidal section
@@ -141,4 +141,4 @@ def plot_geometry(points_2d, ctrl_2d,
     ax3.set_yticks(np.arange(-1.0, 1.1, step=0.5))
     ax3.set_zticks(np.arange(-1.0, 1.1, step=0.5))
     plot_stl(ax3, stlfile)
-    plt.savefig("combined_geometry.pdf")
+    plt.savefig(f"./results/{filename}.pdf")
