@@ -7,6 +7,8 @@ The module also computes the elongation of the guide vanes
 and plots the geometry for verification.
 """
 import numpy as np
+import config as cfg
+import geometry.geometry_process as gp
 from geometry.geometry_reader import get_poloidal_sections_from_toroidal_file, \
                             get_geometry_parameters_from_poloidal_file,\
                             get_geometry_parameters_from_toroidal_file
@@ -83,7 +85,7 @@ def geometry_construct(toroidal_sections, poloidal_sections, mode, plot=False, f
         z_moved_collections.append(moved_points[2])
     guide_vane_collections = []
     file_list = []
-    elongation = []
+    elongation_list = []
     nval = len(poloidal_sections)
     for i in range(nval):
         next_i = (i + 1) % nval
@@ -105,19 +107,22 @@ def geometry_construct(toroidal_sections, poloidal_sections, mode, plot=False, f
             vertices, faces = loft_revolved(np.asarray(guide_vane_collections[i]))
             write_stl(vertices, faces, f"./outputs/revolved_surface+{i}.stl")
             file_list.append(f"./outputs/revolved_surface+{i}.stl")
-        epsilon_max = max(compute_elongation(np.asarray(guide_vane_collections[i])[:, j, :])
-                        for j in range(100))
-        elongation.append(epsilon_max)
+        vals = [compute_elongation(np.asarray(guide_vane_collections[i])[:, j, :])
+                        for j in range(100)]
+        
+        epsilon_max = np.log(np.sum(np.exp(cfg.K_SMOOTH * np.array(vals)))) / cfg.K_SMOOTH
+        elongation_list.append(epsilon_max)
     if plot:
         merge_stls(file_list, "./outputs/" + filename + ".stl")
         plot_geometry([x_collections, y_collections], [ctrl_x_collections, ctrl_y_collections],
                   [x, y, z], [ctrl_x, ctrl_y, ctrl_z],
                   [x_moved_collections, y_moved_collections, z_moved_collections],
                   guide_vane_collections, "./outputs/" + filename + ".stl",
-                  max_elongation=max(elongation),
+                  max_elongation=max(elongation_list),
                   filename=filename)
-    print(f"Max elongation : {max(elongation)}")
-    return max(elongation)
+    gp.CURRENT_ELONGATION = np.percentile(elongation_list, 95)
+    print(f"Max elongation : {gp.CURRENT_ELONGATION}")
+    return gp.CURRENT_ELONGATION
 
 def geometry_calculate(toroidal_sections, poloidal_sections):
     """
@@ -160,7 +165,7 @@ def geometry_calculate(toroidal_sections, poloidal_sections):
         y_moved_collections.append(moved_points[1])
         z_moved_collections.append(moved_points[2])
     guide_vane_collections = []
-    elongation = []
+    elongation_list = []
     nval = len(poloidal_sections)
     for i in range(nval):
         next_i = (i + 1) % nval
@@ -178,7 +183,10 @@ def geometry_calculate(toroidal_sections, poloidal_sections):
                 toroidal_tangents[next_i]
             )
         )
-        epsilon_max = max(compute_elongation(np.asarray(guide_vane_collections[i])[:, j, :])
-                        for j in range(100))
-        elongation.append(epsilon_max)
-    return np.percentile(elongation, 95)
+        vals = [compute_elongation(np.asarray(guide_vane_collections[i])[:, j, :])
+                        for j in range(100)]
+        
+        epsilon_max = np.log(np.sum(np.exp(cfg.K_SMOOTH * np.array(vals)))) / cfg.K_SMOOTH
+        elongation_list.append(epsilon_max)
+    gp.CURRENT_ELONGATION = np.percentile(elongation_list, 95)
+    return gp.CURRENT_ELONGATION
