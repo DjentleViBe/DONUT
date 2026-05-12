@@ -71,24 +71,28 @@ def linearize_data(toroidal_file):
     format = []
     toroidal_prop = get_geometry_parameters_from_toroidal_file(toroidal_file)
     format.append(toroidal_prop.get("N_t"))
-    phi = np.array(toroidal_prop.get("phi")) / 360.0
-    theta = np.array(toroidal_prop.get("theta")) / 360.0
+    phi = np.array(toroidal_prop.get("phi")) * np.pi / 180.0
+    theta = np.array(toroidal_prop.get("theta")) * np.pi / 180.0
     radius = np.array(toroidal_prop.get("radius"))
     weights = np.array(toroidal_prop.get("weights"))
     sections = np.array(toroidal_prop.get("sections"))
-    combined = np.concatenate([phi, theta, radius, weights, sections])
+
+    phi_feat = np.stack([np.sin(phi), np.cos(phi)], axis=-1).flatten()
+    theta_feat = np.stack([np.sin(theta), np.cos(theta)], axis=-1).flatten()
+    combined = np.concatenate([phi_feat, theta_feat, radius, weights, sections])
     toroidal_array.append(combined)
     # loop through the poloidal files
     for i in range (0, toroidal_prop['N_t']):
         with open("./inputs/poloidal_section_" + str(i + 1) + ".json", "r", encoding="utf-8") as f:
             data = json.load(f)
             nval = data.get("N_s")
-            theta = np.array(data.get("theta")) / 360.0
+            theta = np.array(data.get("theta")) * np.pi / 180.0
             radius = np.array(data.get("radius"))
             weights = np.array(data.get("weights"))
             degree = data.get("degree")
 
-            combined = np.concatenate([theta, radius, weights])
+            theta_feat = np.stack([np.sin(theta), np.cos(theta)], axis=-1).flatten()
+            combined = np.concatenate([theta_feat, radius, weights])
             poloidal_array.append(combined)
             format.append(nval)
     poloidal_flat = np.concatenate(poloidal_array) if poloidal_array else np.array([])
@@ -97,34 +101,78 @@ def linearize_data(toroidal_file):
     print(f"Total number of elements to optimize: {len(x0)}")
     return x0, format
 
-def delinearize_data(x0, format):
-    nval = format[0]
-    phi = x0[-nval*5 : -nval*4] * 360.0
-    theta = x0[-nval*4 : -nval*3] * 360.0
-    radius = x0[-nval*3 : -nval*2]
-    weights = x0[-nval*2 : -nval]
-    sections = x0[-nval : ]
-    toroidal_sections = {"N_t": nval, "theta": theta, "phi": phi,
-                "radius": radius, "weights": weights,
-                "degree": 3, "sections": sections}
-    poloidal_sections= []
+def delinearize_data(x0, format_list):
+    """
+    Reconstruct toroidal + poloidal from flat vector.
+    """
+
     idx = 0
 
-    for i in range(format[0]):
-        N_s = format[i + 1]
-        
-        start = idx
-        end = idx + 3 * N_s
-        theta  = x0[start : start + N_s] * 360.0
-        radius = x0[start + N_s : start + 2 * N_s]
-        weights = x0[start + 2 * N_s : start + 3 * N_s]
-        poloidal_section = {
+    # -----------------------
+    # Poloidal reconstruction
+    # -----------------------
+    N_t = format_list[0]
+    poloidal_sections = []
+
+    for i in range(N_t):
+        N_s = format_list[i + 1]
+
+        theta_feat = x0[idx : idx + 2 * N_s]
+        idx += 2 * N_s
+
+        radius = x0[idx : idx + N_s]
+        idx += N_s
+
+        weights = x0[idx : idx + N_s]
+        idx += N_s
+
+        theta_feat = theta_feat.reshape(N_s, 2)
+        sin_theta = theta_feat[:, 0]
+        cos_theta = theta_feat[:, 1]
+        theta = np.degrees(np.arctan2(sin_theta, cos_theta))
+
+        poloidal_sections.append({
             "N_s": N_s,
             "theta": theta,
             "radius": radius,
             "weights": weights,
             "degree": 3
-        }
-        poloidal_sections.append(poloidal_section)
-        idx += 3 * N_s
+        })
+
+    # -----------------------
+    # Toroidal reconstruction
+    # -----------------------
+    N_t = format_list[0]
+
+    phi_feat = x0[idx : idx + 2 * N_t]
+    idx += 2 * N_t
+
+    theta_feat = x0[idx : idx + 2 * N_t]
+    idx += 2 * N_t
+
+    radius = x0[idx : idx + N_t]
+    idx += N_t
+
+    weights = x0[idx : idx + N_t]
+    idx += N_t
+
+    sections = x0[idx : idx + N_t]
+    idx += N_t
+
+    phi_feat = phi_feat.reshape(N_t, 2)
+    theta_feat = theta_feat.reshape(N_t, 2)
+
+    phi = np.degrees(np.arctan2(phi_feat[:, 0], phi_feat[:, 1]))
+    theta = np.degrees(np.arctan2(theta_feat[:, 0], theta_feat[:, 1]))
+
+    toroidal_sections = {
+        "N_t": N_t,
+        "phi": phi,
+        "theta": theta,
+        "radius": radius,
+        "weights": weights,
+        "degree": 3,
+        "sections": sections
+    }
+
     return toroidal_sections, poloidal_sections
