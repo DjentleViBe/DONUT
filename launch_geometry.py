@@ -6,6 +6,8 @@ files for visualization and further processing.
 The module also computes the elongation of the guide vanes 
 and plots the geometry for verification.
 """
+from curses.ascii import ctrl
+
 import numpy as np
 import config as cfg
 import geometry.geometry_process as gp
@@ -50,12 +52,13 @@ def geometry_construct(toroidal_sections, poloidal_sections, mode, plot=False, f
     z_moved_collections = []
     ctrl_x_collections = []
     ctrl_y_collections = []
-    (x, y, z), (ctrl_x, ctrl_y, ctrl_z) = build_sketch_sector_toroidal(
-                                                        toroidal_sections['theta'],
-                                                        toroidal_sections['phi'],
-                                                        toroidal_sections['radius'],
-                                                        toroidal_sections['degree'],
-                                                        toroidal_sections['weights'])
+    curve, ctrl = build_sketch_sector_toroidal(toroidal_sections['theta'],
+                                            toroidal_sections['phi'],
+                                            toroidal_sections['radius'],
+                                            toroidal_sections['degree'],
+                                            toroidal_sections['weights'])
+    x, y, z = curve
+    ctrl_x, ctrl_y, ctrl_z = ctrl
     toroidal_coordinates, toroidal_tangents = get_toroidal_coordinates_tangent(
                                                         toroidal_sections['sections'],
                                                         [x, y, z])
