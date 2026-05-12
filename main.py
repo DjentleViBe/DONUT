@@ -5,6 +5,7 @@ building the sketches of the sectors, and plotting the poloidal cross
 section of the geometry.
 """
 import numpy as np
+import config as cfg
 from scipy.optimize import minimize
 from geometry.geometry_process import geometry_process_optimization
 from geometry.geometry_reader import delinearize_data, linearize_data
@@ -21,16 +22,14 @@ def callback(xk):
     print(f"\nIteration {ITERATION}: Max elongation = {ELONGATION}, xk norm = {np.linalg.norm(xk)}")
 
 if __name__ == "__main__":
-    # geometry_process()
-    # initial guess
     x0, data_format = linearize_data("./inputs/toroidal_section.json")
     toroidal_sections, poloidal_sections = delinearize_data(x0, data_format)
     geometry_construct(toroidal_sections, poloidal_sections, 1, plot=True,
                        filename="initial_geometry")
 
     result = minimize(geometry_process_optimization, x0,
-                      args=(data_format,), method='Nelder-Mead',
-                      options={'maxiter': 5},
+                      args=(data_format,), method=cfg.METHOD,
+                      options={'maxiter': cfg.MAX_ITER},
                       callback=callback)
     print("Optimization result:", result)
     toroidal_sections, poloidal_sections = delinearize_data(result.x, data_format)
