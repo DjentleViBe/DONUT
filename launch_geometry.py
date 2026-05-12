@@ -181,5 +181,4 @@ def geometry_calculate(toroidal_sections, poloidal_sections):
         epsilon_max = max(compute_elongation(np.asarray(guide_vane_collections[i])[:, j, :])
                         for j in range(100))
         elongation.append(epsilon_max)
-    # print(f"Max elongation : {max(elongation)}")
     return np.percentile(elongation, 95)
