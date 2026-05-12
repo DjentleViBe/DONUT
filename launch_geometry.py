@@ -112,15 +112,15 @@ def geometry_construct(toroidal_sections, poloidal_sections, mode, plot=False, f
                 for j in range(100)]
         epsilon_max = np.log(np.sum(np.exp(cfg.K_SMOOTH * np.array(vals)))) / cfg.K_SMOOTH
         elongation_list.append(epsilon_max)
+    gp.CURRENT_ELONGATION = np.percentile(elongation_list, 95)
     if plot:
         merge_stls(file_list, "./outputs/" + filename + ".stl")
         plot_geometry([x_collections, y_collections], [ctrl_x_collections, ctrl_y_collections],
                   [x, y, z], [ctrl_x, ctrl_y, ctrl_z],
                   [x_moved_collections, y_moved_collections, z_moved_collections],
                   guide_vane_collections, "./outputs/" + filename + ".stl",
-                  max_elongation=max(elongation_list),
+                  max_elongation=gp.CURRENT_ELONGATION,
                   filename=filename)
-    gp.CURRENT_ELONGATION = np.percentile(elongation_list, 95)
     print(f"Max elongation : {gp.CURRENT_ELONGATION}")
     return gp.CURRENT_ELONGATION
 
