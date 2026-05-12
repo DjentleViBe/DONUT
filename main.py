@@ -5,8 +5,8 @@ building the sketches of the sectors, and plotting the poloidal cross
 section of the geometry.
 """
 import numpy as np
-import config as cfg
 from scipy.optimize import minimize
+import config as cfg
 import geometry.geometry_process as gp
 from geometry.geometry_process import geometry_process_optimization
 from geometry.geometry_reader import delinearize_data, linearize_data
@@ -19,7 +19,8 @@ def callback(xk):
     It logs the current iteration number."""
     global ITERATION
     ITERATION += 1
-    print(f"\nIteration {ITERATION}: Max elongation = {gp.BEST_ELONGATION}, xk norm = {np.linalg.norm(xk)}")
+    print(f"\nIteration {ITERATION}: Max elongation = {gp.BEST_ELONGATION},"
+          f"xk norm = {np.linalg.norm(xk)}")
 
 if __name__ == "__main__":
     x0, data_format = linearize_data("./inputs/toroidal_section.json")

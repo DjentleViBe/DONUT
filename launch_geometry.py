@@ -6,8 +6,6 @@ files for visualization and further processing.
 The module also computes the elongation of the guide vanes 
 and plots the geometry for verification.
 """
-from curses.ascii import ctrl
-
 import numpy as np
 import config as cfg
 import geometry.geometry_process as gp
@@ -111,8 +109,7 @@ def geometry_construct(toroidal_sections, poloidal_sections, mode, plot=False, f
             write_stl(vertices, faces, f"./outputs/revolved_surface+{i}.stl")
             file_list.append(f"./outputs/revolved_surface+{i}.stl")
         vals = [compute_elongation(np.asarray(guide_vane_collections[i])[:, j, :])
-                        for j in range(100)]
-        
+                for j in range(100)]
         epsilon_max = np.log(np.sum(np.exp(cfg.K_SMOOTH * np.array(vals)))) / cfg.K_SMOOTH
         elongation_list.append(epsilon_max)
     if plot:
@@ -188,7 +185,6 @@ def geometry_calculate(toroidal_sections, poloidal_sections):
         )
         vals = [compute_elongation(np.asarray(guide_vane_collections[i])[:, j, :])
                         for j in range(100)]
-        
         epsilon_max = np.log(np.sum(np.exp(cfg.K_SMOOTH * np.array(vals)))) / cfg.K_SMOOTH
         elongation_list.append(epsilon_max)
     gp.CURRENT_ELONGATION = np.percentile(elongation_list, 95)
