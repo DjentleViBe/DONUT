@@ -107,19 +107,19 @@ def geometry_construct(toroidal_sections, poloidal_sections, mode, plot=False, f
         )
         if plot:
             vertices, faces = loft_revolved(np.asarray(guide_vane_collections[i]))
-            write_stl(vertices, faces, f"./outputs/revolved_surface+{i}.stl")
-            file_list.append(f"./outputs/revolved_surface+{i}.stl")
+            write_stl(vertices, faces, f"./outputs/{cfg.STUDY_NAME}_{cfg.METHOD}_revolved_surface+{i}.stl")
+            file_list.append(f"./outputs/{cfg.STUDY_NAME}_{cfg.METHOD}_revolved_surface+{i}.stl")
         vals = [compute_elongation(np.asarray(guide_vane_collections[i])[:, j, :])
                 for j in range(100)]
         epsilon_max = logsumexp(cfg.K_SMOOTH * np.array(vals)) / cfg.K_SMOOTH
         elongation_list.append(epsilon_max)
     gp.CURRENT_ELONGATION = np.percentile(elongation_list, 95)
     if plot:
-        merge_stls(file_list, "./outputs/" + filename + ".stl")
+        merge_stls(file_list, "./outputs/" + cfg.STUDY_NAME + "_" + cfg.METHOD + "_" + filename + ".stl")
         plot_geometry([x_collections, y_collections], [ctrl_x_collections, ctrl_y_collections],
                   [x, y, z], [ctrl_x, ctrl_y, ctrl_z],
                   [x_moved_collections, y_moved_collections, z_moved_collections],
-                  guide_vane_collections, "./outputs/" + filename + ".stl",
+                  guide_vane_collections, "./outputs/" + cfg.STUDY_NAME + "_" + cfg.METHOD + "_" + filename + ".stl",
                   max_elongation=gp.CURRENT_ELONGATION,
                   filename=filename)
     print(f"Max elongation : {gp.CURRENT_ELONGATION}")
