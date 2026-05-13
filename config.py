@@ -5,7 +5,12 @@ that can be used across the project."""
 # optimsation parameters
 MAX_ITER = 5
 TOLERANCE = 1e-6
-METHOD = 'Nelder-Mead'
+STUDY_NAME = "Fourier"
+# 'COBYLA' 
+# 'Nelder-Mead'
+# 'L-BFGS-B'
+# 'trust-constr'
+METHOD = 'COBYLA'  
 K_SMOOTH = 20.0
 PHI_T = 2
 THETA_T = 2
