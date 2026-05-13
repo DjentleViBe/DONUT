@@ -20,6 +20,6 @@ def geometry_process_optimization(x0, format):
     # track best value seen so far
     if BEST_ELONGATION is None or CURRENT_ELONGATION < BEST_ELONGATION:
         BEST_ELONGATION = CURRENT_ELONGATION
-    print(f"\t\tRAW x: {x0[:5]}", f"Objective: {CURRENT_ELONGATION}")
+    print(f"\t\tRAW x: {np.round(x0[:5], 6)}", f"Objective: {CURRENT_ELONGATION:.6f}")
     return CURRENT_ELONGATION
     
