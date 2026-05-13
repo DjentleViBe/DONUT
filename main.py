@@ -14,11 +14,12 @@ from launch_geometry import geometry_construct
 
 ITERATION = 0  # external counter
 
-def callback(xk):
+def callback(*args):
     """callback function to be called after each optimization iteration. 
     It logs the current iteration number."""
     global ITERATION
     ITERATION += 1
+    xk = args[0]
     print(f"\nIteration {ITERATION}: Max elongation = {gp.BEST_ELONGATION},"
           f"xk norm = {np.linalg.norm(xk)}")
 
