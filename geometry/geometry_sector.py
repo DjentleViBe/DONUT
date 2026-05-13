@@ -72,32 +72,49 @@ def build_sketch_sector_toroidal(theta, phi, radius, degree, weights):
     return list(zip(*curve_points)),  list(zip(*ctrl_pts))
 
 def get_toroidal_coordinates_tangent(section_limits, points_3d):
-    """Extract the toroidal coordinates (x, y, z) from the 3D points of 
-    the toroidal section.
-    Args:
-        section_limits: list of tuples defining the limits of the toroidal 
-        section in terms of theta and phi points_3d: list of (x, y, z) 
-        coordinates for the toroidal section
-    Returns:
-        xyz: list of x, y, z coordinates of the toroidal section
     """
-    toroidal_coordinates = []
-    toroidal_tangents = []
-    for sect in section_limits:
-        index = int(len(points_3d[0]) * sect)
-        toroidal_coordinates.append((points_3d[0][index],
-                                     points_3d[1][index],
-                                     points_3d[2][index]))
-        if index < len(points_3d[0]) - 1:
-            tangent = (points_3d[0][index + 1] - points_3d[0][index],
-                       points_3d[1][index + 1] - points_3d[1][index],
-                       points_3d[2][index + 1] - points_3d[2][index])
+    Extract toroidal coordinates and tangents from 3D curve sampling points.
+
+    section_limits: list of floats in [0, 1]
+    points_3d: (3, N) array-like structure
+    """
+
+    coords = []
+    tangents = []
+
+    x = np.asarray(points_3d[0])
+    y = np.asarray(points_3d[1])
+    z = np.asarray(points_3d[2])
+
+    n = len(x)
+
+    if n < 2:
+        raise ValueError("points_3d must contain at least 2 points")
+
+    for s in section_limits:
+
+        # --- clamp to valid range (critical for optimizers like COBYLA) ---
+        s = float(np.clip(s, 0.0, 1.0))
+
+        # --- map [0,1] → valid index range ---
+        idx = int(round(s * (n - 1)))
+        idx = np.clip(idx, 0, n - 1)
+
+        coords.append((x[idx], y[idx], z[idx]))
+
+        # --- tangent computation (safe boundary handling) ---
+        if idx < n - 1:
+            dx = x[idx + 1] - x[idx]
+            dy = y[idx + 1] - y[idx]
+            dz = z[idx + 1] - z[idx]
         else:
-            tangent = (points_3d[0][index] - points_3d[0][index - 1],
-                       points_3d[1][index] - points_3d[1][index - 1],
-                       points_3d[2][index] - points_3d[2][index - 1])
-        toroidal_tangents.append(tangent)
-    return toroidal_coordinates, toroidal_tangents
+            dx = x[idx] - x[idx - 1]
+            dy = y[idx] - y[idx - 1]
+            dz = z[idx] - z[idx - 1]
+
+        tangents.append((dx, dy, dz))
+
+    return coords, tangents
 
 def guide_vane(startpoint, endpoint, startvector, endvector, start_w, end_w):
     """
