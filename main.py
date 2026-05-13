@@ -9,7 +9,7 @@ from scipy.optimize import minimize
 import config as cfg
 import geometry.geometry_process as gp
 from geometry.geometry_process import geometry_process_optimization
-from geometry.geometry_reader import delinearize_data, linearize_data
+import geometry.geometry_fourier as gf
 from launch_geometry import geometry_construct
 
 ITERATION = 0  # external counter
@@ -24,16 +24,27 @@ def callback(*args):
           f"xk norm = {np.linalg.norm(xk)}")
 
 if __name__ == "__main__":
-    x0, data_format = linearize_data("./inputs/toroidal_section.json")
-    toroidal_sections, poloidal_sections = delinearize_data(x0, data_format)
+    if cfg.STUDY_NAME == "Fourier":
+        print("Running Fourier optimization...")
+        x0, data_format = gf.linearize_data("./inputs/toroidal_section.json")
+        toroidal_sections, poloidal_sections = gf.delinearize_data(x0, data_format)
     gp.CURRENT_ELONGATION = geometry_construct(toroidal_sections, poloidal_sections, 1, plot=True,
-                       filename="initial_geometry")
+                       filename=cfg.STUDY_NAME + "_" + cfg.METHOD + "_initial_geometry")
 
-    result = minimize(geometry_process_optimization, x0,
+    if cfg.METHOD == 'COBYLA':
+        result = minimize(geometry_process_optimization, x0,
+                      args=(data_format,), method=cfg.METHOD,
+                      options={'maxiter': len(x0) + 2},
+                      callback=callback)
+    else:
+        result = minimize(geometry_process_optimization, x0,
                       args=(data_format,), method=cfg.METHOD,
                       options={'maxiter': cfg.MAX_ITER},
                       callback=callback)
+
     print("Optimization result:", result)
-    toroidal_sections, poloidal_sections = delinearize_data(result.x, data_format)
+    
+    if cfg.STUDY_NAME == "Fourier":
+        toroidal_sections, poloidal_sections = gf.delinearize_data(result.x, data_format)
     gp.CURRENT_ELONGATION = geometry_construct(toroidal_sections, poloidal_sections, 1, plot=True,
-                       filename="optimized_geometry")
+                    filename=cfg.STUDY_NAME + "_" + cfg.METHOD + "_optimized_geometry")
