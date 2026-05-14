@@ -25,7 +25,7 @@ def param_num_sector_toroidal(nt, theta, phi, radius):
         radius (list): List of radius values for control points.
     Raises:        ValueError: If the parameters are inconsistent.
     """
-    print(f"Checking toroidal geometry parameters: N_t={nt},"
+    print(f"Toroidal geometry parameters: N_t={nt},"
           f"theta={theta}, phi={phi}, radius={radius}")
     if len(theta) != nt:
         raise ValueError(f"Number of theta values should be {nt}")
