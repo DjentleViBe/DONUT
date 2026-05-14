@@ -31,7 +31,7 @@ if __name__ == "__main__":
         toroidal_sections, poloidal_sections = gf.delinearize_data(x0, data_format)
         write_geometry_parameters_to_file(toroidal_sections, poloidal_sections, data_format, "./results/"+ cfg.STUDY_NAME + "_" + cfg.METHOD + "_initial_geometry.json")
     gp.CURRENT_ELONGATION = geometry_construct(toroidal_sections, poloidal_sections, 1, plot=True,
-                       filename=cfg.STUDY_NAME + "_" + cfg.METHOD + "_initial_geometry")
+                       filename="_initial_geometry")
 
     if cfg.METHOD == 'COBYLA':
         result = minimize(geometry_process_optimization, x0,
@@ -50,4 +50,4 @@ if __name__ == "__main__":
         toroidal_sections, poloidal_sections = gf.delinearize_data(result.x, data_format)
         write_geometry_parameters_to_file(toroidal_sections, poloidal_sections, data_format, "./results/"+ cfg.STUDY_NAME + "_" + cfg.METHOD + "_optimized_geometry.json")
     gp.CURRENT_ELONGATION = geometry_construct(toroidal_sections, poloidal_sections, 1, plot=True,
-                    filename=cfg.STUDY_NAME + "_" + cfg.METHOD + "_optimized_geometry")
+                    filename="_optimized_geometry")

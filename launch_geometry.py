@@ -122,7 +122,8 @@ def geometry_construct(toroidal_sections, poloidal_sections, mode, plot=False, f
                   [x, y, z], [ctrl_x, ctrl_y, ctrl_z],
                   [x_moved_collections, y_moved_collections, z_moved_collections],
                   guide_vane_collections, "./outputs/" + cfg.STUDY_NAME + "_" + cfg.METHOD + "_" + filename + ".stl",
-                  max_elongation=gp.CURRENT_ELONGATION,
+                  current_elongation=gp.CURRENT_ELONGATION,
+                  best_elongation=gp.BEST_ELONGATION,
                   filename=filename)
     print(f"Max elongation : {gp.CURRENT_ELONGATION}")
     return gp.CURRENT_ELONGATION
