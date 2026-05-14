@@ -70,7 +70,7 @@ def geometry_construct(toroidal_sections, poloidal_sections, mode, plot=False, f
                                                     poloid_file['degree'],
                                                     poloid_file['weights'])
         else:
-            x_p, y_p, ctrl_xp, ctrl_yp = build_sketch_sector(poloidal_file['theta'],
+            x_p, y_p, ctrl_xp, ctrl_yp = build_sketch_sector(poloidal_file['psi'],
                                                     poloidal_file['radius'],
                                                     poloidal_file['degree'],
                                                     poloidal_file['weights'])
@@ -151,7 +151,7 @@ def geometry_calculate(toroidal_sections, poloidal_sections):
                                                         toroidal_sections['sections'],
                                                         [x, y, z])
     for i, poloidal_file in enumerate(poloidal_sections):
-        x_p, y_p, ctrl_xp, ctrl_yp = build_sketch_sector(poloidal_file['theta'],
+        x_p, y_p, ctrl_xp, ctrl_yp = build_sketch_sector(poloidal_file['psi'],
                                                 poloidal_file['radius'],
                                                 poloidal_file['degree'],
                                                 poloidal_file['weights'])
