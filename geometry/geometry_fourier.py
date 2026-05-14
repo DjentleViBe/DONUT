@@ -2,7 +2,7 @@ import numpy as np
 import json
 import config as cfg
 from geometry.geometry_reader import get_geometry_parameters_from_toroidal_file
-from geometry.geometry_constraints import f_to_x, x_to_f
+from geometry.geometry_constraints import f_to_u, u_to_f
 from helper.fourier_helper import fourier_encode, fourier_decode
 
 def linearize_data(toroidal_file):
@@ -17,15 +17,14 @@ def linearize_data(toroidal_file):
     format = []
     toroidal_prop = get_geometry_parameters_from_toroidal_file(toroidal_file)
     format.append(toroidal_prop.get("N_t"))
-    phi = np.array(toroidal_prop.get("phi")) * np.pi / 180.0
+    phi = np.radians(np.array(toroidal_prop.get("phi")))
     theta = np.array(toroidal_prop.get("theta")) * np.pi / 180.0
     radius = np.array(toroidal_prop.get("radius"), dtype=np.float64)
     weights = np.array(toroidal_prop.get("weights"), dtype=np.float64)
     sections = np.array(toroidal_prop.get("sections"), dtype=np.float64)
 
-    phi_to_x = f_to_x(phi)
-
-    combined = np.concatenate([phi_to_x, theta, radius, weights, sections])
+    phi_to_u = f_to_u(phi)
+    combined = np.concatenate([phi_to_u, theta, radius, weights, sections])
     toroidal_array.append(combined)
     # loop through the poloidal files
     for i in range (0, toroidal_prop['N_t']):
@@ -37,14 +36,15 @@ def linearize_data(toroidal_file):
             weights = np.array(data.get("weights"), dtype=np.float64)
             degree = data.get("degree")
 
-            psi_to_x = f_to_x(psi)
-            combined = np.concatenate([psi_to_x, radius, weights])
+            psi_to_u = f_to_u(psi)
+            combined = np.concatenate([psi_to_u, radius, weights])
             poloidal_array.append(combined)
             format.append(nval)
     poloidal_flat = np.concatenate(poloidal_array) if poloidal_array else np.array([])
     toroidal_flat = np.concatenate(toroidal_array) if toroidal_array else np.array([])
     x0 = np.concatenate([poloidal_flat, toroidal_flat])
     print(f"Total number of elements to optimize: {len(x0)}")
+    
     return x0, format
 
 def delinearize_data(x0, format_list):
@@ -61,7 +61,7 @@ def delinearize_data(x0, format_list):
     for i in range(N_t):
         N_s = format_list[i + 1]
 
-        psi_to_x = x0[idx : idx + N_s]
+        psi_to_u = x0[idx : idx + N_s]
         idx += N_s
 
         radius = x0[idx : idx + N_s]
@@ -70,8 +70,7 @@ def delinearize_data(x0, format_list):
         weights = x0[idx : idx + N_s]
         idx += N_s
 
-        psi = np.degrees(x_to_f(psi_to_x, 0))
-        #psi = np.degrees(psi_to_x)
+        psi = np.degrees(u_to_f(psi_to_u, 0))
 
         poloidal_sections.append({
             "N_s": N_s,
@@ -86,7 +85,7 @@ def delinearize_data(x0, format_list):
     # -----------------------
     N_t = format_list[0]
 
-    phi_to_x = x0[idx : idx + N_t]
+    phi_to_u = x0[idx : idx + N_t]
     idx += N_t
 
     theta_to_x = x0[idx : idx + N_t]
@@ -101,8 +100,7 @@ def delinearize_data(x0, format_list):
     sections = x0[idx : idx + N_t]
     idx += N_t
 
-    phi = np.degrees(x_to_f(phi_to_x, 0))
-    #phi = np.degrees(phi_to_x)
+    phi = np.degrees(u_to_f(phi_to_u, 0))
     theta = np.degrees(theta_to_x)  # direct decoding for theta
     toroidal_sections = {
         "N_t": N_t,

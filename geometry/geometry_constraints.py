@@ -47,3 +47,24 @@ def x_to_f(x, f0=None):
         f[0] = f0
 
     return f
+
+def f_to_u(f, eps=1e-12, period=2*np.pi):
+    f = np.asarray(f)
+    df = np.diff(f)
+    wrap = (f[0] + period) - f[-1]
+    df = np.append(df, wrap)
+    return np.log(df + eps)
+
+def u_to_f(u, f0=0.0, period=2*np.pi):
+    u = np.asarray(u, dtype=float)
+
+    # 1. recover raw segment lengths
+    df = np.exp(u)
+    # 2. enforce circular closure constraint
+    df *= period / np.sum(df)
+    # 3. integrate
+    f = np.zeros(len(u) + 1)
+    f[0] = f0
+    for k in range(len(u)):
+        f[k+1] = f[k] + df[k]
+    return f[:-1]
