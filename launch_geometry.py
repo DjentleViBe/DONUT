@@ -18,7 +18,7 @@ from geometry.geometry_sector import build_sketch_sector, build_sketch_sector_to
 from geometry.geometry_plotter import plot_geometry
 from geometry.geometry_operations import rotate_poloidal_section
 from geometry.geometry_build import loft_revolved, write_stl, merge_stls
-from objectives import compute_elongation
+from objectives import compute_elongation_fit
 
 def softmax_max(x, beta=10.0):
     """Compute a smooth approximation of the maximum value in the 
@@ -109,11 +109,13 @@ def geometry_construct(toroidal_sections, poloidal_sections, mode, plot=False, f
             vertices, faces = loft_revolved(np.asarray(guide_vane_collections[i]))
             write_stl(vertices, faces, f"./outputs/{cfg.STUDY_NAME}_{cfg.METHOD}_revolved_surface+{i}.stl")
             file_list.append(f"./outputs/{cfg.STUDY_NAME}_{cfg.METHOD}_revolved_surface+{i}.stl")
-        vals = [compute_elongation(np.asarray(guide_vane_collections[i])[:, j, :])
+        vals = [compute_elongation_fit(np.asarray(guide_vane_collections[i])[:, j, :])
                 for j in range(100)]
-        epsilon_max = logsumexp(cfg.K_SMOOTH * np.array(vals)) / cfg.K_SMOOTH
+        # epsilon_max = logsumexp(cfg.K_SMOOTH * np.array(vals)) / cfg.K_SMOOTH
+        epsilon_max = max(vals)
         elongation_list.append(epsilon_max)
-    gp.CURRENT_ELONGATION = np.percentile(elongation_list, 95)
+    # gp.CURRENT_ELONGATION = np.percentile(elongation_list, 95)
+    gp.CURRENT_ELONGATION = max(elongation_list)
     if plot:
         merge_stls(file_list, "./outputs/" + cfg.STUDY_NAME + "_" + cfg.METHOD + "_" + filename + ".stl")
         plot_geometry([x_collections, y_collections], [ctrl_x_collections, ctrl_y_collections],
@@ -184,9 +186,11 @@ def geometry_calculate(toroidal_sections, poloidal_sections):
                 toroidal_tangents[next_i]
             )
         )
-        vals = [compute_elongation(np.asarray(guide_vane_collections[i])[:, j, :])
+        vals = [compute_elongation_fit(np.asarray(guide_vane_collections[i])[:, j, :])
                         for j in range(100)]
-        epsilon_max = logsumexp(cfg.K_SMOOTH * np.array(vals)) / cfg.K_SMOOTH
+        # epsilon_max = logsumexp(cfg.K_SMOOTH * np.array(vals)) / cfg.K_SMOOTH
+        epsilon_max = max(vals)
         elongation_list.append(epsilon_max)
-    gp.CURRENT_ELONGATION = np.percentile(elongation_list, 95)
+    # gp.CURRENT_ELONGATION = np.percentile(elongation_list, 95)
+    gp.CURRENT_ELONGATION = max(elongation_list)
     return gp.CURRENT_ELONGATION
