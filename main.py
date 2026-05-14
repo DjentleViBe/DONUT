@@ -11,6 +11,7 @@ import geometry.geometry_process as gp
 from geometry.geometry_process import geometry_process_optimization
 import geometry.geometry_fourier as gf
 from launch_geometry import geometry_construct
+from geometry.geometry_writer import write_geometry_parameters_to_file
 
 ITERATION = 0  # external counter
 
@@ -28,6 +29,7 @@ if __name__ == "__main__":
         print("Running Fourier optimization...")
         x0, data_format = gf.linearize_data("./inputs/toroidal_section.json")
         toroidal_sections, poloidal_sections = gf.delinearize_data(x0, data_format)
+        write_geometry_parameters_to_file(toroidal_sections, poloidal_sections, data_format, "./results/"+ cfg.STUDY_NAME + "_" + cfg.METHOD + "_initial_geometry.json")
     gp.CURRENT_ELONGATION = geometry_construct(toroidal_sections, poloidal_sections, 1, plot=True,
                        filename=cfg.STUDY_NAME + "_" + cfg.METHOD + "_initial_geometry")
 
@@ -46,5 +48,6 @@ if __name__ == "__main__":
     
     if cfg.STUDY_NAME == "Fourier":
         toroidal_sections, poloidal_sections = gf.delinearize_data(result.x, data_format)
+        write_geometry_parameters_to_file(toroidal_sections, poloidal_sections, data_format, "./results/"+ cfg.STUDY_NAME + "_" + cfg.METHOD + "_optimized_geometry.json")
     gp.CURRENT_ELONGATION = geometry_construct(toroidal_sections, poloidal_sections, 1, plot=True,
                     filename=cfg.STUDY_NAME + "_" + cfg.METHOD + "_optimized_geometry")
