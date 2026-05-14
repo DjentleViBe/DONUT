@@ -23,6 +23,6 @@ def geometry_process_optimization(x0, format):
     if BEST_ELONGATION is None or CURRENT_ELONGATION < BEST_ELONGATION:
         BEST_ELONGATION = CURRENT_ELONGATION
     FUNC_EVAL += 1
-    print(f"{FUNC_EVAL}\t : RAW x: {np.round(x0[:5], 6)}", f"Objective: {CURRENT_ELONGATION:.6f}")
+    print(f"Func eval {FUNC_EVAL}:", f"Objective: {CURRENT_ELONGATION:.6f}")
     return CURRENT_ELONGATION
     
