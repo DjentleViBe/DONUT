@@ -21,7 +21,8 @@ def callback(*args):
     global ITERATION
     ITERATION += 1
     xk = args[0]
-    print(f"\nIteration {ITERATION}: Max elongation = {gp.BEST_ELONGATION},"
+    print(f"\nIteration {ITERATION}: Max elongation = {gp.BEST_ELONGATION}," 
+          f"Triangularity = {gp.CURRENT_TRIANGULARITY},"
           f"xk norm = {np.linalg.norm(xk)}")
 
 if __name__ == "__main__":
