@@ -35,10 +35,10 @@ def geometry_process_optimization(x0, format):
             penalty_tri += cfg.PENALTY_WEIGHT * (CURRENT_TRIANGULARITY - cfg.DELTA_MAX)**2
         
         if CURRENT_AR < cfg.AR_MIN:
-            penalty_AR += cfg.PENALTY_WEIGHT * (cfg.AR_MIN - CURRENT_AR)**2
+            penalty_AR += cfg.AR_WEIGHT * (cfg.AR_MIN - CURRENT_AR)**2
         if CURRENT_AR > cfg.AR_MAX:
-            penalty_AR += cfg.PENALTY_WEIGHT * (CURRENT_AR - cfg.AR_MAX)**2
-
+            penalty_AR += cfg.AR_WEIGHT * (CURRENT_AR - cfg.AR_MAX)**2
+        total_penalty = penalty_tri + penalty_AR
         if BEST_ELONGATION is None or CURRENT_ELONGATION < BEST_ELONGATION:
             BEST_ELONGATION = CURRENT_ELONGATION
         print(f"Func eval {FUNC_EVAL}:", f"Objective: {CURRENT_ELONGATION:.4f}, Triangularity: {CURRENT_TRIANGULARITY:.4f}, Aspect Ratio: {CURRENT_AR:.4f}, Penalty: {total_penalty:.4f}")
@@ -46,5 +46,5 @@ def geometry_process_optimization(x0, format):
     else:
         if BEST_ELONGATION is None or CURRENT_ELONGATION < BEST_ELONGATION:
             BEST_ELONGATION = CURRENT_ELONGATION
-        print(f"Func eval {FUNC_EVAL}:", f"Objective: {CURRENT_ELONGATION:.4f}, Triangularity: {CURRENT_TRIANGULARITY:.4f}, Aspect Ratio: {CURRENT_AR:.4f}, Penalty: {total_penalty:.4f}")
+        print(f"Func eval {FUNC_EVAL}:", f"Objective: {CURRENT_ELONGATION:.4f}, Triangularity: {CURRENT_TRIANGULARITY:.4f}, Aspect Ratio: {CURRENT_AR:.4f}, Penalty: {0.0000}")
         return CURRENT_ELONGATION
