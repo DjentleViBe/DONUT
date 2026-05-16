@@ -27,8 +27,8 @@ def callback(*args):
           f"xk norm = {np.linalg.norm(xk): .4f}")
 
 if __name__ == "__main__":
-    if cfg.STUDY_NAME == "Fourier":
-        print("Running Fourier optimization...")
+    if cfg.STUDY_NAME == "Spherical":
+        print("Running Spherical optimization...")
         x0, data_format = gf.linearize_data("./inputs/toroidal_section.json")
         toroidal_sections, poloidal_sections = gf.delinearize_data(x0, data_format)
         write_geometry_parameters_to_file(toroidal_sections, poloidal_sections, data_format, "./results/"+ cfg.STUDY_NAME + "_" + cfg.METHOD + "_initial_geometry.json")
