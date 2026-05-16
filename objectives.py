@@ -30,7 +30,7 @@ def compute_elongation(cross_section):
     
     return max(a, b) / min(a, b)
 
-def compute_elongation_fit(cross_section):
+def compute_cross_section_area_perimeter(cross_section):
     pts = np.asarray(cross_section)
 
     # perimeter
@@ -42,6 +42,10 @@ def compute_elongation_fit(cross_section):
     vecs = pts - centroid
     crosses = np.cross(vecs, np.roll(vecs, -1, axis=0))
     A = 0.5 * np.linalg.norm(crosses.sum(axis=0))
+    return A, P
+
+def compute_elongation_fit(cross_section):
+    A, P = compute_cross_section_area_perimeter(cross_section)
 
     def residual(kappa):
         a = np.sqrt(A * kappa / np.pi)
@@ -141,3 +145,15 @@ def compute_average_triangularity(
 
     # Average over the two stellarator symmetry planes
     return np.mean(triangularities)
+
+def compute_average_aspect_ratio(x_collections, y_collections, z_collections=None):
+    x = np.concatenate(np.asarray(x_collections))
+    y = np.concatenate(np.asarray(y_collections))
+    z = np.concatenate(np.asarray(z_collections))
+    points = np.vstack([x, y, z]).T
+
+    R = np.sqrt(points[:, 0]**2 + points[:, 1]**2)
+    R0 = np.mean(R)
+    a = np.std(R)
+
+    return R0 / a

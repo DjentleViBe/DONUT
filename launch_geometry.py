@@ -18,7 +18,8 @@ from geometry.geometry_sector import build_sketch_sector, build_sketch_sector_to
 from geometry.geometry_plotter import plot_geometry
 from geometry.geometry_operations import rotate_poloidal_section
 from geometry.geometry_build import loft_revolved, write_stl, merge_stls
-from objectives import compute_elongation_fit, compute_average_triangularity
+from objectives import compute_elongation_fit, compute_average_triangularity, \
+                        compute_average_aspect_ratio
 
 def softmax_max(x, beta=10.0):
     """Compute a smooth approximation of the maximum value in the 
@@ -169,6 +170,8 @@ def geometry_calculate(toroidal_sections, poloidal_sections):
         y_moved_collections.append(moved_points[1])
         z_moved_collections.append(moved_points[2])
     gp.CURRENT_TRIANGULARITY = compute_average_triangularity(x_collections, y_collections)
+    gp.CURRENT_AR = compute_average_aspect_ratio(x_moved_collections, y_moved_collections, z_moved_collections)
+
     guide_vane_collections = []
     elongation_list = []
     nval = len(poloidal_sections)
