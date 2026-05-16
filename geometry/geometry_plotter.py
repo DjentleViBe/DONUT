@@ -4,6 +4,7 @@ import config as cfg
 import numpy as np
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from stl import mesh
+import geometry.geometry_process as gp
 
 def poloidal_cross_section(x, y, ctrl_x, ctrl_y):
     """Plot the poloidal cross section of the geometry.
@@ -148,10 +149,11 @@ def plot_geometry(points_2d, ctrl_2d,
     ax3.set_yticks(np.arange(-1.0, 1.1, step=0.5))
     ax3.set_zticks(np.arange(-1.0, 1.1, step=0.5))
     plot_stl(ax3, stlfile)
-    fig.text(0.5, 0.95,
-    f"Max elongation: {current_elongation:.6f}",
-    ha='center',
+    plt.suptitle(f"Study type : {cfg.STUDY_NAME}, Method : {cfg.METHOD}", 
+                 fontweight='bold', fontsize=16)
+    fig.text(0.40, 0.10,
+    f"Max elongation: {gp.CURRENT_ELONGATION:.4f}, \nMax aspect ratio: {gp.CURRENT_AR:.4f}, \nMax triangularity: {gp.CURRENT_TRIANGULARITY:.4f}",
+    ha='left',
     va='center',
-    fontsize=12,
-    fontweight='bold')
+    fontsize=12)
     plt.savefig(f"./results/{filename}.pdf")
