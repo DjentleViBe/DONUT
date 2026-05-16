@@ -86,6 +86,9 @@ def geometry_construct(toroidal_sections, poloidal_sections, mode, plot=False, f
         x_moved_collections.append(moved_points[0])
         y_moved_collections.append(moved_points[1])
         z_moved_collections.append(moved_points[2])
+    gp.CURRENT_TRIANGULARITY = compute_average_triangularity(x_collections, y_collections)
+    gp.CURRENT_AR = compute_average_aspect_ratio(x_moved_collections, y_moved_collections, z_moved_collections)
+
     guide_vane_collections = []
     file_list = []
     elongation_list = []
