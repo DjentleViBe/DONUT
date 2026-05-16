@@ -22,17 +22,13 @@ def geometry_process_optimization(x0, format):
     if cfg.STUDY_NAME == "Fourier":
         toroidal_sections, poloidal_sections = gf.delinearize_data(x0, format)
     CURRENT_ELONGATION, CURRENT_TRIANGULARITY = geometry_calculate(toroidal_sections, poloidal_sections)
-    if cfg.METHOD != 'trust-constr' or cfg.METHOD != 'SLSQP:':
+    if cfg.METHOD != 'trust-constr' and cfg.METHOD != 'SLSQP':
         penalty = 0.0
-        delta_min = 0.25
-        delta_max = 0.55
-        penalty_weight = 1000.0
+        if CURRENT_TRIANGULARITY < cfg.DELTA_MIN:
+            penalty += cfg.PENALTY_WEIGHT * (cfg.DELTA_MIN - CURRENT_TRIANGULARITY)**2
 
-        if CURRENT_TRIANGULARITY < delta_min:
-            penalty += penalty_weight * (delta_min - CURRENT_TRIANGULARITY)**2
-
-        if CURRENT_TRIANGULARITY > delta_max:
-            penalty += penalty_weight * (CURRENT_TRIANGULARITY - delta_max)**2
+        if CURRENT_TRIANGULARITY > cfg.DELTA_MAX:
+            penalty += cfg.PENALTY_WEIGHT * (CURRENT_TRIANGULARITY - cfg.DELTA_MAX)**2
             # track best value seen so far
         if BEST_ELONGATION is None or CURRENT_ELONGATION < BEST_ELONGATION:
             BEST_ELONGATION = CURRENT_ELONGATION
