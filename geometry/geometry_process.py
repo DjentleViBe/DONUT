@@ -27,6 +27,7 @@ def geometry_process_optimization(x0, format):
     if cfg.METHOD != 'trust-constr' and cfg.METHOD != 'SLSQP':
         penalty_tri = 0.0
         penalty_AR = 0.0
+        total_penalty = 0.0
         if CURRENT_TRIANGULARITY < cfg.DELTA_MIN:
             penalty_tri += cfg.PENALTY_WEIGHT * (cfg.DELTA_MIN - CURRENT_TRIANGULARITY)**2
 
@@ -40,10 +41,10 @@ def geometry_process_optimization(x0, format):
 
         if BEST_ELONGATION is None or CURRENT_ELONGATION < BEST_ELONGATION:
             BEST_ELONGATION = CURRENT_ELONGATION
-        print(f"Func eval {FUNC_EVAL}:", f"Objective: {CURRENT_ELONGATION:.6f}, Triangularity: {CURRENT_TRIANGULARITY:.6f}, Aspect Ratio: {CURRENT_AR:.6f}, Penalty: {penalty_tri:.6f}")
-        return CURRENT_ELONGATION + penalty_tri + penalty_AR
+        print(f"Func eval {FUNC_EVAL}:", f"Objective: {CURRENT_ELONGATION:.4f}, Triangularity: {CURRENT_TRIANGULARITY:.4f}, Aspect Ratio: {CURRENT_AR:.4f}, Penalty: {total_penalty:.4f}")
+        return CURRENT_ELONGATION + total_penalty
     else:
         if BEST_ELONGATION is None or CURRENT_ELONGATION < BEST_ELONGATION:
             BEST_ELONGATION = CURRENT_ELONGATION
-        print(f"Func eval {FUNC_EVAL}:", f"Objective: {CURRENT_ELONGATION:.6f}, Triangularity: {CURRENT_TRIANGULARITY:.6f}, Aspect Ratio: 0.000000, Penalty: 0.000000")
+        print(f"Func eval {FUNC_EVAL}:", f"Objective: {CURRENT_ELONGATION:.4f}, Triangularity: {CURRENT_TRIANGULARITY:.4f}, Aspect Ratio: {CURRENT_AR:.4f}, Penalty: {total_penalty:.4f}")
         return CURRENT_ELONGATION
