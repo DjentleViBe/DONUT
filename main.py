@@ -21,12 +21,14 @@ def callback(*args):
     global ITERATION
     ITERATION += 1
     xk = args[0]
-    print(f"\nIteration {ITERATION}: Max elongation = {gp.BEST_ELONGATION},"
-          f"xk norm = {np.linalg.norm(xk)}")
+    print(f"\nIteration {ITERATION}: Max elongation = {gp.BEST_ELONGATION: .4f}," 
+          f"Triangularity = {gp.CURRENT_TRIANGULARITY: .4f},"
+          f"Aspect Ratio = {gp.CURRENT_AR: .4f},"
+          f"xk norm = {np.linalg.norm(xk): .4f}")
 
 if __name__ == "__main__":
-    if cfg.STUDY_NAME == "Fourier":
-        print("Running Fourier optimization...")
+    if cfg.STUDY_NAME == "Spherical":
+        print("Running Spherical optimization...")
         x0, data_format = gf.linearize_data("./inputs/toroidal_section.json")
         toroidal_sections, poloidal_sections = gf.delinearize_data(x0, data_format)
         write_geometry_parameters_to_file(toroidal_sections, poloidal_sections, data_format, "./results/"+ cfg.STUDY_NAME + "_" + cfg.METHOD + "_initial_geometry.json")
@@ -45,7 +47,18 @@ if __name__ == "__main__":
                       callback=callback)
 
     print("Optimization result:", result)
-    
+    """
+    constraints = [
+        {
+            'type': 'ineq',
+            'fun': lambda x: compute_triangularity_from_x(x) - cfg.DELTA_MIN
+        },
+        {
+            'type': 'ineq',
+            'fun': lambda x: cfg.DELTA_MAX - compute_triangularity_from_x(x)
+        }
+    ]
+    """
     if cfg.STUDY_NAME == "Fourier":
         toroidal_sections, poloidal_sections = gf.delinearize_data(result.x, data_format)
         write_geometry_parameters_to_file(toroidal_sections, poloidal_sections, data_format, "./results/"+ cfg.STUDY_NAME + "_" + cfg.METHOD + "_optimized_geometry.json")

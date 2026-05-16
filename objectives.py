@@ -30,7 +30,7 @@ def compute_elongation(cross_section):
     
     return max(a, b) / min(a, b)
 
-def compute_elongation_fit(cross_section):
+def compute_cross_section_area_perimeter(cross_section):
     pts = np.asarray(cross_section)
 
     # perimeter
@@ -42,6 +42,10 @@ def compute_elongation_fit(cross_section):
     vecs = pts - centroid
     crosses = np.cross(vecs, np.roll(vecs, -1, axis=0))
     A = 0.5 * np.linalg.norm(crosses.sum(axis=0))
+    return A, P
+
+def compute_elongation_fit(cross_section):
+    A, P = compute_cross_section_area_perimeter(cross_section)
 
     def residual(kappa):
         a = np.sqrt(A * kappa / np.pi)
@@ -69,3 +73,87 @@ def compute_elongation_fit(cross_section):
     kappa = optimize.brentq(residual, 1.0, kupper)
 
     return kappa
+
+def compute_average_triangularity(
+    x_collections,
+    y_collections,
+):
+    """
+    Compute the average triangularity using the two stellarator
+    symmetry cross-sections.
+
+    Parameters
+    ----------
+    x_collections : list of arrays
+        x-coordinates of the poloidal sections.
+    y_collections : list of arrays
+        y-coordinates of the poloidal sections.
+
+    Returns
+    -------
+    float
+        Average triangularity.
+    """
+
+    n_sections = len(x_collections)
+
+    if n_sections < 2:
+        raise ValueError("At least two poloidal sections are required.")
+
+    # Stellarator symmetry planes:
+    # phi = 0
+    # phi = pi / Nfp
+    idx_sections = [0, n_sections // 2]
+
+    triangularities = []
+
+    for idx in idx_sections:
+
+        R = np.asarray(x_collections[idx])
+        Z = np.asarray(y_collections[idx])
+
+        # Surface centroid approximation of magnetic axis
+        R0 = np.mean(R)
+
+        R_max = np.max(R)
+        R_min = np.min(R)
+
+        minor_radius = 0.5 * (R_max - R_min)
+
+        if minor_radius <= 0:
+            raise ValueError("Degenerate cross-section detected.")
+
+        # Location of maximum Z
+        idx_max_Z = np.argmax(Z)
+
+        R_Zmax = R[idx_max_Z]
+
+        # Top triangularity
+        delta_top = (R0 - R_Zmax) / minor_radius
+
+        # Optional:
+        # use bottom triangularity too
+        idx_min_Z = np.argmin(Z)
+        R_Zmin = R[idx_min_Z]
+
+        delta_bottom = (R0 - R_Zmin) / minor_radius
+
+        # Average upper/lower triangularity
+        delta = 0.5 * (delta_top + delta_bottom)
+
+        triangularities.append(delta)
+
+    # Average over the two stellarator symmetry planes
+    return np.mean(triangularities)
+
+def compute_average_aspect_ratio(x_collections, y_collections, z_collections=None):
+    x = np.concatenate(np.asarray(x_collections))
+    y = np.concatenate(np.asarray(y_collections))
+    z = np.concatenate(np.asarray(z_collections))
+    points = np.vstack([x, y, z]).T
+
+    R = np.sqrt(points[:, 0]**2 + points[:, 1]**2)
+    R0 = np.mean(R)
+    a = np.std(R)
+
+    return R0 / a
