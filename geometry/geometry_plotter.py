@@ -72,7 +72,7 @@ def plot_geometry(points_2d, ctrl_2d,
                   points_3d, ctrl_3d,
                   moved_points_3d,
                   guide_vane_collections,
-                  stlfile, max_elongation,
+                  stlfile, current_elongation, max_elongation,
                   filename="combined_geometry"):
     """Plot the combined geometry of the poloidal and toroidal sections.
     Args:        points_2d: list of (x, y) coordinates for each poloidal section
@@ -149,7 +149,7 @@ def plot_geometry(points_2d, ctrl_2d,
     ax3.set_zticks(np.arange(-1.0, 1.1, step=0.5))
     plot_stl(ax3, stlfile)
     fig.text(0.5, 0.95,
-    f"Max elongation: {max_elongation:.6f}",
+    f"Max elongation: {current_elongation:.6f}",
     ha='center',
     va='center',
     fontsize=12,

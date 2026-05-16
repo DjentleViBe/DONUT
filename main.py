@@ -9,30 +9,45 @@ from scipy.optimize import minimize
 import config as cfg
 import geometry.geometry_process as gp
 from geometry.geometry_process import geometry_process_optimization
-from geometry.geometry_reader import delinearize_data, linearize_data
+import geometry.geometry_fourier as gf
 from launch_geometry import geometry_construct
+from geometry.geometry_writer import write_geometry_parameters_to_file
 
 ITERATION = 0  # external counter
 
-def callback(xk):
+def callback(*args):
     """callback function to be called after each optimization iteration. 
     It logs the current iteration number."""
     global ITERATION
     ITERATION += 1
+    xk = args[0]
     print(f"\nIteration {ITERATION}: Max elongation = {gp.BEST_ELONGATION},"
           f"xk norm = {np.linalg.norm(xk)}")
 
 if __name__ == "__main__":
-    x0, data_format = linearize_data("./inputs/toroidal_section.json")
-    toroidal_sections, poloidal_sections = delinearize_data(x0, data_format)
+    if cfg.STUDY_NAME == "Fourier":
+        print("Running Fourier optimization...")
+        x0, data_format = gf.linearize_data("./inputs/toroidal_section.json")
+        toroidal_sections, poloidal_sections = gf.delinearize_data(x0, data_format)
+        write_geometry_parameters_to_file(toroidal_sections, poloidal_sections, data_format, "./results/"+ cfg.STUDY_NAME + "_" + cfg.METHOD + "_initial_geometry.json")
     gp.CURRENT_ELONGATION = geometry_construct(toroidal_sections, poloidal_sections, 1, plot=True,
-                       filename="initial_geometry")
+                       filename=cfg.STUDY_NAME + "_" + cfg.METHOD +"_initial_geometry")
 
-    result = minimize(geometry_process_optimization, x0,
+    if cfg.METHOD == 'COBYLA':
+        result = minimize(geometry_process_optimization, x0,
+                      args=(data_format,), method=cfg.METHOD,
+                      options={'maxiter': len(x0) + 2},
+                      callback=callback)
+    else:
+        result = minimize(geometry_process_optimization, x0,
                       args=(data_format,), method=cfg.METHOD,
                       options={'maxiter': cfg.MAX_ITER},
                       callback=callback)
+
     print("Optimization result:", result)
-    toroidal_sections, poloidal_sections = delinearize_data(result.x, data_format)
+    
+    if cfg.STUDY_NAME == "Fourier":
+        toroidal_sections, poloidal_sections = gf.delinearize_data(result.x, data_format)
+        write_geometry_parameters_to_file(toroidal_sections, poloidal_sections, data_format, "./results/"+ cfg.STUDY_NAME + "_" + cfg.METHOD + "_optimized_geometry.json")
     gp.CURRENT_ELONGATION = geometry_construct(toroidal_sections, poloidal_sections, 1, plot=True,
-                       filename="optimized_geometry")
+                    filename=cfg.STUDY_NAME + "_" + cfg.METHOD +"_optimized_geometry")
