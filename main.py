@@ -36,7 +36,7 @@ if __name__ == "__main__":
     if cfg.METHOD == 'COBYLA':
         result = minimize(geometry_process_optimization, x0,
                       args=(data_format,), method=cfg.METHOD,
-                      options={'maxiter': len(x0) + 2},
+                      options={'maxiter': len(x0) * 2},
                       callback=callback)
     else:
         result = minimize(geometry_process_optimization, x0,

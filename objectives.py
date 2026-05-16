@@ -31,24 +31,41 @@ def compute_elongation(cross_section):
     return max(a, b) / min(a, b)
 
 def compute_elongation_fit(cross_section):
-    pts = cross_section  # shape (N, 3)
-    # Perimeter
+    pts = np.asarray(cross_section)
+
+    # perimeter
     diffs = np.diff(pts, axis=0, append=pts[:1])
-    perimeter = np.sum(np.linalg.norm(diffs, axis=1))
-    
-    # Area via cross product (works for 3D planar polygon)
+    P = np.sum(np.linalg.norm(diffs, axis=1))
+
+    # area
     centroid = pts.mean(axis=0)
     vecs = pts - centroid
     crosses = np.cross(vecs, np.roll(vecs, -1, axis=0))
-    area = 0.5 * np.linalg.norm(crosses.sum(axis=0))
-    
-    # Fit equivalent ellipse: b = area / (pi * a)
-    # Solve: perimeter = 4a * E(1 - (b/a)^2)
-    def residual(a):
-        b = area / (np.pi * a)
-        e2 = 1.0 - (b / a) ** 2
-        return perimeter - 4.0 * a * special.ellipe(e2)
+    A = 0.5 * np.linalg.norm(crosses.sum(axis=0))
 
-    a_sol = optimize.fsolve(residual, x0=np.sqrt(area / np.pi))[0]
-    b_sol = area / (np.pi * a_sol)
-    return max(a_sol, b_sol) / min(a_sol, b_sol)
+    def residual(kappa):
+        a = np.sqrt(A * kappa / np.pi)
+        e2 = 1.0 - 1.0 / (kappa**2)
+        Pell = 4.0 * a * special.ellipe(e2)
+        return Pell - P
+
+    # circle is minimum perimeter
+    r1 = residual(1.0)
+
+    if r1 > 0:
+        raise ValueError(
+            "Measured perimeter is smaller than circle perimeter "
+            "for same area. Geometry likely under-resolved."
+        )
+
+    # grow upper bound until sign changes
+    kupper = 2.0
+    while residual(kupper) < 0:
+        kupper *= 2.0
+
+        if kupper > 1e6:
+            raise ValueError("Could not bracket elongation root.")
+
+    kappa = optimize.brentq(residual, 1.0, kupper)
+
+    return kappa
