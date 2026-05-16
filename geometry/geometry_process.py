@@ -21,7 +21,7 @@ def geometry_process_optimization(x0, format):
         print("BAD INPUT x DETECTED")
         sys.exit(1)
         
-    if cfg.STUDY_NAME == "Fourier":
+    if cfg.STUDY_NAME == "Spherical":
         toroidal_sections, poloidal_sections = gf.delinearize_data(x0, format)
     CURRENT_ELONGATION, CURRENT_TRIANGULARITY = geometry_calculate(toroidal_sections, poloidal_sections)
     if cfg.METHOD != 'trust-constr' and cfg.METHOD != 'SLSQP':
