@@ -21,10 +21,10 @@ def callback(*args):
     global ITERATION
     ITERATION += 1
     xk = args[0]
-    print(f"\nIteration {ITERATION}: Max elongation = {gp.BEST_ELONGATION}," 
-          f"Triangularity = {gp.CURRENT_TRIANGULARITY},"
-          f"Aspect Ratio = {gp.CURRENT_AR},"
-          f"xk norm = {np.linalg.norm(xk)}")
+    print(f"\nIteration {ITERATION}: Max elongation = {gp.BEST_ELONGATION: .4f}," 
+          f"Triangularity = {gp.CURRENT_TRIANGULARITY: .4f},"
+          f"Aspect Ratio = {gp.CURRENT_AR: .4f},"
+          f"xk norm = {np.linalg.norm(xk): .4f}")
 
 if __name__ == "__main__":
     if cfg.STUDY_NAME == "Fourier":
