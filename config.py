@@ -15,6 +15,11 @@ K_SMOOTH = 20.0
 PHI_T = 2
 THETA_T = 2
 THETA_P = 2
+# constriant parameters
+# Triangularity constraint parameters
+DELTA_MIN = 0.25
+DELTA_MAX = 0.55
+PENALTY_WEIGHT = 1000.0
 # plotting parameters
 color = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728",
           "#9467bd", "#8c564b", "#e377c2", "#7f7f7f",
