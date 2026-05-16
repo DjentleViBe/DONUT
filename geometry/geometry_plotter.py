@@ -85,15 +85,15 @@ def plot_geometry(points_2d, ctrl_2d,
         ctrl_y: list of y coordinates of control points for the toroidal section
         ctrl_z: list of z coordinates of control points for the toroidal section"""
     print("Plotting combined geometry...")
-    fig = plt.figure(figsize=(11,8))
-    gs = fig.add_gridspec(2,3, width_ratios=[1, 1, 1], height_ratios=[1, 1], hspace=0.1)
+    fig = plt.figure(figsize=(10,7))
+    gs = fig.add_gridspec(4,3, width_ratios=[1, 1, 1], height_ratios=[1, 1, 1, 1], hspace=0.1)
     #ax1.set_axis_off()
     # Left 3D axis
-    ax1 = fig.add_subplot(gs[0,0], projection='3d')
+    ax1 = fig.add_subplot(gs[0:2,0], projection='3d')
     # Middle 2D axis
-    ax2 = fig.add_subplot(gs[1,0])
+    ax2 = fig.add_subplot(gs[2:4,0])
     # Right 2D axis
-    ax3 = fig.add_subplot(gs[0:,1:], projection='3d')
+    ax3 = fig.add_subplot(gs[0:3,1:], projection='3d')
     ax1.plot(points_3d[0], points_3d[1], points_3d[2], color = 'k', label="Toroidal Section")
     ax1.view_init(elev=90, azim=0)
     ax1.set_proj_type('ortho')
@@ -151,8 +151,14 @@ def plot_geometry(points_2d, ctrl_2d,
     plot_stl(ax3, stlfile)
     plt.suptitle(f"Study type : {cfg.STUDY_NAME}, Method : {cfg.METHOD}", 
                  fontweight='bold', fontsize=16)
-    fig.text(0.40, 0.10,
-    f"Max elongation: {gp.CURRENT_ELONGATION:.4f}, \nMax aspect ratio: {gp.CURRENT_AR:.4f}, \nMax triangularity: {gp.CURRENT_TRIANGULARITY:.4f}",
+    ax4 = fig.add_subplot(gs[3:4,1:])
+    ax4.axis('off')
+    label = rf'''
+    $\epsilon_{{\max}}: {gp.CURRENT_ELONGATION:.4f}$
+    $A: {gp.CURRENT_AR:.4f}$
+    $\bar{{\delta}}: {gp.CURRENT_TRIANGULARITY:.4f}$'''
+    ax4.text(0.15, 0.5,
+    label,
     ha='left',
     va='center',
     fontsize=12)
