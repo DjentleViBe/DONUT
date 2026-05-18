@@ -4,6 +4,7 @@ import config as cfg
 from geometry.geometry_reader import get_geometry_parameters_from_toroidal_file
 from geometry.geometry_constraints import f_to_u, u_to_f
 from helper.fourier_helper import fourier_encode, fourier_decode
+import geometry.geometry_process as gp
 
 def linearize_data(toroidal_file):
     """
@@ -47,7 +48,7 @@ def linearize_data(toroidal_file):
     
     return x0, format
 
-def delinearize_data(x0, format_list):
+def delinearize_data(x0):
     """
     Reconstruct toroidal + poloidal from flat vector.
     """
@@ -56,6 +57,7 @@ def delinearize_data(x0, format_list):
     # -----------------------
     # Poloidal reconstruction
     # -----------------------
+    format_list = gp.FORMAT
     N_t = format_list[0]
     poloidal_sections = []
     for i in range(N_t):

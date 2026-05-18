@@ -1,50 +1,97 @@
 import numpy as np
 import sys
-from launch_geometry import geometry_construct, geometry_calculate
+from launch_geometry import geometry_pipeline
 import geometry.geometry_fourier as gf
 import config as cfg
 
 CURRENT_ELONGATION = None
 CURRENT_TRIANGULARITY = None
 CURRENT_AR = None
-BEST_ELONGATION = np.inf
+BEST_ELONGATION = None
 FUNC_EVAL = 0
+CONSTR_EVAL = 0
+FORMAT = None
 
-def geometry_process_optimization(x0, format):
-    global CURRENT_ELONGATION
-    global BEST_ELONGATION
-    global CURRENT_TRIANGULARITY
-    global CURRENT_AR
+class Evaluator:
+    def __init__(self):
+        self.last_x = None
+        self.result = None
+
+    def evaluate(self, x):
+        
+        if cfg.STUDY_NAME == "Spherical":
+            toroidal_sections, poloidal_sections = gf.delinearize_data(x)
+        elongation, triangularity, ar = geometry_pipeline(toroidal_sections, poloidal_sections)
+        self.result = {
+            "elongation": elongation,
+            "triangularity": triangularity,
+            "ar": ar
+        }
+        return self.result
+
+class Tracker:
+    def __init__(self):
+        self.best_x = None
+        self.best_value = np.inf
+        self.history = []
+
+    def update(self, x, value, constraints_ok=True):
+        self.history.append((np.copy(x), value))
+        if constraints_ok and value < self.best_value:
+            self.best_value = value
+            self.best_x = np.copy(x)
+
+evaluator = Evaluator()
+
+def geometry_process_optimization(x):
     global FUNC_EVAL
+    global CURRENT_TRIANGULARITY, CURRENT_AR, BEST_ELONGATION
     FUNC_EVAL += 1
-    if np.any(np.isnan(x0)) or np.any(np.isinf(x0)):
-        print("BAD INPUT x DETECTED")
-        sys.exit(1)
-        
-    if cfg.STUDY_NAME == "Spherical":
-        toroidal_sections, poloidal_sections = gf.delinearize_data(x0, format)
-    CURRENT_ELONGATION, CURRENT_TRIANGULARITY = geometry_calculate(toroidal_sections, poloidal_sections)
+    penalty_tri = 0.0
+    penalty_AR = 0.0
+    total_penalty = 0.0
+    r = evaluator.evaluate(x)
     if cfg.METHOD != 'trust-constr' and cfg.METHOD != 'SLSQP':
-        penalty_tri = 0.0
-        penalty_AR = 0.0
-        total_penalty = 0.0
-        if CURRENT_TRIANGULARITY < cfg.DELTA_MIN:
-            penalty_tri += cfg.PENALTY_WEIGHT * (cfg.DELTA_MIN - CURRENT_TRIANGULARITY)**2
-
-        if CURRENT_TRIANGULARITY > cfg.DELTA_MAX:
-            penalty_tri += cfg.PENALTY_WEIGHT * (CURRENT_TRIANGULARITY - cfg.DELTA_MAX)**2
-        
-        if CURRENT_AR < cfg.AR_MIN:
-            penalty_AR += cfg.AR_WEIGHT * (cfg.AR_MIN - CURRENT_AR)**2
-        if CURRENT_AR > cfg.AR_MAX:
-            penalty_AR += cfg.AR_WEIGHT * (CURRENT_AR - cfg.AR_MAX)**2
+        if r["triangularity"] < cfg.DELTA_MIN:
+            penalty_tri += cfg.PENALTY_WEIGHT * (cfg.DELTA_MIN - r["triangularity"])**2
+        if r["triangularity"] > cfg.DELTA_MAX:
+            penalty_tri += cfg.PENALTY_WEIGHT * (r["triangularity"] - cfg.DELTA_MAX)**2
+        if r["ar"] < cfg.AR_MIN:
+            penalty_AR += cfg.AR_WEIGHT * (cfg.AR_MIN - r["ar"])**2
+        if r["ar"] > cfg.AR_MAX:
+            penalty_AR += cfg.AR_WEIGHT * (r["ar"] - cfg.AR_MAX)**2
         total_penalty = penalty_tri + penalty_AR
-        if BEST_ELONGATION is None or CURRENT_ELONGATION < BEST_ELONGATION:
-            BEST_ELONGATION = CURRENT_ELONGATION
-        print(f"Func eval {FUNC_EVAL}:", f"Objective: {CURRENT_ELONGATION:.4f}, Triangularity: {CURRENT_TRIANGULARITY:.4f}, Aspect Ratio: {CURRENT_AR:.4f}, Penalty: {total_penalty:.4f}")
-        return CURRENT_ELONGATION + total_penalty
+        CURRENT_AR = r["ar"]
+        CURRENT_TRIANGULARITY = r["triangularity"]
+        if BEST_ELONGATION is None or r["elongation"] < BEST_ELONGATION:
+            BEST_ELONGATION = r["elongation"]
+        print(
+        f"Func eval {FUNC_EVAL}: "
+        f"Objective: {r['elongation']:.4f}, "
+        f"Triangularity: {r['triangularity']:.4f}, "
+        f"Aspect Ratio: {r['ar']:.4f}, "
+        f"Penalty: {total_penalty:.4f}")
+        return r["elongation"] + total_penalty
     else:
-        if BEST_ELONGATION is None or CURRENT_ELONGATION < BEST_ELONGATION:
-            BEST_ELONGATION = CURRENT_ELONGATION
-        print(f"Func eval {FUNC_EVAL}:", f"Objective: {CURRENT_ELONGATION:.4f}, Triangularity: {CURRENT_TRIANGULARITY:.4f}, Aspect Ratio: {CURRENT_AR:.4f}, Penalty: {0.0000}")
-        return CURRENT_ELONGATION
+        # print("x:", x)
+        CURRENT_AR = r["ar"]
+        CURRENT_TRIANGULARITY = r["triangularity"]
+        if BEST_ELONGATION is None or r["elongation"] < BEST_ELONGATION:
+            BEST_ELONGATION = r["elongation"]
+        print(
+        f"Func eval {FUNC_EVAL}: "
+        f"Objective: {r['elongation']:.4f}, "
+        f"Triangularity: {r['triangularity']:.4f}, "
+        f"Aspect Ratio: {r['ar']:.4f}")
+        return r["elongation"] * 100
+
+def geometry_process_constraint(x):
+    global CONSTR_EVAL
+    CONSTR_EVAL += 1
+    r = evaluator.evaluate(x)
+    # print("x:", x)
+    print(
+        f"Constr. eval {CONSTR_EVAL}: Triangularity: {r['triangularity']:.4f}, "
+        f"Aspect Ratio: {r['ar']:.4f}")
+
+    return [r["triangularity"], r["ar"]]
