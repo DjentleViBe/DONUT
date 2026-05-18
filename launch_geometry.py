@@ -118,7 +118,7 @@ def geometry_elongation(poloidal_sections, x_moved_collections, y_moved_collecti
         # epsilon_max = logsumexp(cfg.K_SMOOTH * np.array(vals)) / cfg.K_SMOOTH
         epsilon_max = max(vals)
         elongation_list.append(epsilon_max)
-        return elongation_list, file_list, guide_vane_collections
+    return elongation_list, file_list, guide_vane_collections
     
 def geometry_construct(toroidal_sections, poloidal_sections, mode, plot=False, filename=None):
     """
