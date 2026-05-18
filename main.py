@@ -46,7 +46,7 @@ if __name__ == "__main__":
                       method=cfg.METHOD,
                       options={'maxfev': cfg.MAX_ITER * len(x0)},
                       callback=callback)
-    elif cfg.METHOD == 'SLSQP' or cfg.METHOD == 'trust-constr':
+    elif cfg.METHOD == 'trust-constr':
         nonlinear_constraint = NonlinearConstraint(geometry_process_constraint,
                                                    [cfg.DELTA_MIN, cfg.AR_MIN],
                                                    [cfg.DELTA_MAX, cfg.AR_MAX],
@@ -54,6 +54,15 @@ if __name__ == "__main__":
         result = minimize(geometry_process_optimization, x0,
                       method=cfg.METHOD,
                       options={'maxiter': cfg.MAX_ITER, 'finite_diff_rel_step': cfg.FDRS},
+                      constraints=[nonlinear_constraint],
+                      callback=callback)
+    elif cfg.METHOD == 'SLSQP':
+        nonlinear_constraint = NonlinearConstraint(geometry_process_constraint,
+                                                   [cfg.DELTA_MIN, cfg.AR_MIN],
+                                                   [cfg.DELTA_MAX, cfg.AR_MAX])        
+        result = minimize(geometry_process_optimization, x0,
+                      method=cfg.METHOD,
+                      options={'maxiter': cfg.MAX_ITER, "eps": cfg.FDRS},
                       constraints=[nonlinear_constraint],
                       callback=callback)
     else:
