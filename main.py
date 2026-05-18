@@ -59,7 +59,7 @@ if __name__ == "__main__":
         }
     ]
     """
-    if cfg.STUDY_NAME == "Fourier":
+    if cfg.STUDY_NAME == "Spherical":
         toroidal_sections, poloidal_sections = gf.delinearize_data(result.x, data_format)
         write_geometry_parameters_to_file(toroidal_sections, poloidal_sections, data_format, "./results/"+ cfg.STUDY_NAME + "_" + cfg.METHOD + "_optimized_geometry.json")
     gp.CURRENT_ELONGATION = geometry_construct(toroidal_sections, poloidal_sections, 1, plot=True,
