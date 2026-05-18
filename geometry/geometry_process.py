@@ -83,7 +83,7 @@ def geometry_process_optimization(x):
         f"Objective: {r['elongation']:.4f}, "
         f"Triangularity: {r['triangularity']:.4f}, "
         f"Aspect Ratio: {r['ar']:.4f}")
-        return r["elongation"] * 100
+        return r["elongation"]
 
 def geometry_process_constraint(x):
     global CONSTR_EVAL
