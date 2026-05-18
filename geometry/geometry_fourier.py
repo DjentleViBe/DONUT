@@ -16,10 +16,12 @@ def linearize_data(toroidal_file):
     toroidal_array = []
     poloidal_array = []
     format = []
+    theta0 = np.deg2rad(90.0)
+    theta_delta = np.deg2rad(45.0)
     toroidal_prop = get_geometry_parameters_from_toroidal_file(toroidal_file)
     format.append(toroidal_prop.get("N_t"))
     phi = np.radians(np.array(toroidal_prop.get("phi")))
-    theta = np.array(toroidal_prop.get("theta")) * np.pi / 180.0
+    theta = ((np.array(toroidal_prop.get("theta")) * np.pi / 180.0) - theta0) / theta_delta
     radius = np.array(toroidal_prop.get("radius"), dtype=np.float64)
     weights = np.array(toroidal_prop.get("weights"), dtype=np.float64)
     sections = np.array(toroidal_prop.get("sections"), dtype=np.float64)
@@ -53,7 +55,8 @@ def delinearize_data(x0):
     Reconstruct toroidal + poloidal from flat vector.
     """
     idx = 0
-
+    theta0 = np.deg2rad(90.0)
+    theta_delta = np.deg2rad(45.0)
     # -----------------------
     # Poloidal reconstruction
     # -----------------------
@@ -103,7 +106,7 @@ def delinearize_data(x0):
     idx += N_t
 
     phi = np.degrees(u_to_f(phi_to_u, 0))
-    theta = np.degrees(theta_to_x)  # direct decoding for theta
+    theta = np.degrees(theta0 + theta_to_x * theta_delta)  # direct decoding for theta
     toroidal_sections = {
         "N_t": N_t,
         "phi": phi,

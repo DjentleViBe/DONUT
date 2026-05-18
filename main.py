@@ -64,6 +64,7 @@ if __name__ == "__main__":
                       method=cfg.METHOD,
                       options={'maxiter': cfg.MAX_ITER, "eps": cfg.FDRS},
                       constraints=[nonlinear_constraint],
+                      bounds = [(-1, 1)] * len(x0),
                       callback=callback)
     else:
         result = minimize(geometry_process_optimization, x0,
