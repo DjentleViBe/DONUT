@@ -1,6 +1,7 @@
 _paper
-outputs/*
-results/*
+outputs/*.stl
+results/*.json
+results/*.pdf
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
