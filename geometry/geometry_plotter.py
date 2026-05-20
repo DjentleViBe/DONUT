@@ -73,7 +73,7 @@ def plot_geometry(points_2d, ctrl_2d,
                   points_3d, ctrl_3d,
                   moved_points_3d,
                   guide_vane_collections,
-                  stlfile, current_elongation, max_elongation,
+                  stlfile,
                   filename="combined_geometry"):
     """Plot the combined geometry of the poloidal and toroidal sections.
     Args:        points_2d: list of (x, y) coordinates for each poloidal section
@@ -154,10 +154,19 @@ def plot_geometry(points_2d, ctrl_2d,
     ax4 = fig.add_subplot(gs[3:4,1:])
     ax4.axis('off')
     label = rf'''
-    $\epsilon_{{\max}}: {gp.CURRENT_ELONGATION:.4f}$
+    $\epsilon_{{\max}}: {gp.TRIAL_ELONGATION:.4f}$
     $A: {gp.CURRENT_AR:.4f}$
     $\bar{{\delta}}: {gp.CURRENT_TRIANGULARITY:.4f}$'''
     ax4.text(0.15, 0.5,
+    label,
+    ha='left',
+    va='center',
+    fontsize=12)
+    label = rf'''
+    $\epsilon_{{\max}}: {gp.BEST_ELONGATION:.4f}$
+    $A: {gp.BEST_AR:.4f}$
+    $\bar{{\delta}}: {gp.BEST_TRIANGULARITY:.4f}$'''
+    ax4.text(0.45, 0.5,
     label,
     ha='left',
     va='center',
