@@ -3,7 +3,7 @@ from launch_geometry import geometry_pipeline
 import geometry.geometry_fourier as gf
 import config as cfg
 
-CURRENT_ELONGATION = None
+TRIAL_ELONGATION = None
 CURRENT_TRIANGULARITY = None
 CURRENT_AR = None
 BEST_ELONGATION = 0.0
@@ -53,7 +53,7 @@ evaluator = Evaluator()
 def geometry_process_optimization(x):
     global elongation_history, triangularity_history, ar_history
     global FUNC_EVAL
-    global CURRENT_TRIANGULARITY, CURRENT_AR, CURRENT_ELONGATION
+    global CURRENT_TRIANGULARITY, CURRENT_AR, TRIAL_ELONGATION
     global BEST_TRIANGULARITY, BEST_AR, BEST_ELONGATION
     global BEST_X, CURRENT_X
     FUNC_EVAL += 1

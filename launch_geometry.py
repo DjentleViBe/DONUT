@@ -146,14 +146,14 @@ def geometry_construct(toroidal_sections, poloidal_sections, mode, init=False, p
                                                                 y_moved_collections,
                                                                 z_moved_collections, \
                                                                 toroidal_tangents, plot=True)
-    # gp.CURRENT_ELONGATION = np.percentile(elongation_list, 95)
+    # gp.TRIAL_ELONGATION = np.percentile(elongation_list, 95)
     CE = max(elongation_list)
     CT = compute_average_triangularity(x_collections, y_collections)
     AR = compute_average_aspect_ratio(x_moved_collections,
                                       y_moved_collections,
                                       z_moved_collections)
     if init:
-        gp.CURRENT_ELONGATION = CE
+        gp.TRIAL_ELONGATION = CE
         gp.CURRENT_AR = AR
         gp.CURRENT_TRIANGULARITY = CT
     if plot:
@@ -184,9 +184,9 @@ def geometry_optimise(toroidal_sections, poloidal_sections):
                                           y_moved_collections,
                                           z_moved_collections, \
                                             toroidal_tangents, plot=False)
-    # gp.CURRENT_ELONGATION = np.percentile(elongation_list, 95)
-    gp.CURRENT_ELONGATION = max(elongation_list)
-    return gp.CURRENT_ELONGATION
+    # gp.TRIAL_ELONGATION = np.percentile(elongation_list, 95)
+    gp.TRIAL_ELONGATION = max(elongation_list)
+    return gp.TRIAL_ELONGATION
 
 def geometry_constraint(toroidal_sections, poloidal_sections):
     """
@@ -205,7 +205,7 @@ def geometry_constraint(toroidal_sections, poloidal_sections):
     #                                      y_moved_collections,
     #                                      z_moved_collections,
     #                                        toroidal_tangents, plot=False)
-    # gp.CURRENT_ELONGATION = np.percentile(elongation_list, 95)
+    # gp.TRIAL_ELONGATION = np.percentile(elongation_list, 95)
     gp.CURRENT_TRIANGULARITY = compute_average_triangularity(x_collections, y_collections)
     gp.CURRENT_AR = compute_average_aspect_ratio(x_moved_collections,
                                                  y_moved_collections,
@@ -221,7 +221,7 @@ def geometry_pipeline(toroidal_sections, poloidal_sections):
     mode: An integer indicating the mode of operation (0 for reading from files, 
             1 for using provided data).
     """
-    CURRENT_ELONGATION = geometry_optimise(toroidal_sections, poloidal_sections)
+    TRIAL_ELONGATION = geometry_optimise(toroidal_sections, poloidal_sections)
     CURRENT_TRIANGULARITY, CURRENT_AR = geometry_constraint(toroidal_sections, poloidal_sections)
 
-    return CURRENT_ELONGATION, CURRENT_TRIANGULARITY, CURRENT_AR
+    return TRIAL_ELONGATION, CURRENT_TRIANGULARITY, CURRENT_AR

@@ -28,13 +28,13 @@ def callback(*args):
     global ITERATION
     ITERATION += 1
     xk = args[0]
-    elongation_current_iteration.append(gp.CURRENT_ELONGATION)
+    elongation_current_iteration.append(gp.TRIAL_ELONGATION)
     triangularity_current_iteration.append(gp.CURRENT_TRIANGULARITY)
     ar_current_iteration.append(gp.CURRENT_AR)
     elongation_best_iteration.append(gp.BEST_ELONGATION)
     triangularity_best_iteration.append(gp.BEST_TRIANGULARITY)
     ar_best_iteration.append(gp.BEST_AR)
-    print(f"\nIteration {ITERATION}: Current elongation = {gp.CURRENT_ELONGATION:.4f},"
+    print(f"\nIteration {ITERATION}: Current elongation = {gp.TRIAL_ELONGATION:.4f},"
           f"Triangularity = {gp.CURRENT_TRIANGULARITY:.4f},"
           f"Aspect Ratio = {gp.CURRENT_AR:.4f},"
           f"xk norm = {np.linalg.norm(xk):.4f}")
@@ -48,10 +48,10 @@ if __name__ == "__main__":
         write_geometry_parameters_to_file(toroidal_sections, poloidal_sections,
                                           data_format, "./results/"+ cfg.STUDY_NAME
                                           + "_" + cfg.METHOD + "_initial_geometry.json")
-    gp.CURRENT_ELONGATION, gp.CURRENT_TRIANGULARITY, gp.CURRENT_AR = geometry_construct(toroidal_sections, 
+    gp.TRIAL_ELONGATION, gp.CURRENT_TRIANGULARITY, gp.CURRENT_AR = geometry_construct(toroidal_sections, 
                                                               poloidal_sections, 1, init=True, plot=True,
                        filename=cfg.STUDY_NAME + "_" + cfg.METHOD +"_initial_geometry")
-    elongation_current_iteration.append(gp.CURRENT_ELONGATION)
+    elongation_current_iteration.append(gp.TRIAL_ELONGATION)
     triangularity_current_iteration.append(gp.CURRENT_TRIANGULARITY)
     ar_current_iteration.append(gp.CURRENT_AR)
     if cfg.METHOD == 'COBYLA':
@@ -97,7 +97,7 @@ if __name__ == "__main__":
                                           data_format, "./results/"+
                                           cfg.STUDY_NAME + "_" + cfg.METHOD +
                                           "_optimized_geometry.json")
-        print(f"Current elongation : {gp.CURRENT_ELONGATION}")
+        print(f"Current elongation : {gp.TRIAL_ELONGATION}")
         geometry_construct(toroidal_sections, poloidal_sections,
                           1, plot=True, filename=cfg.STUDY_NAME +
                           "_" + cfg.METHOD +"_optimized_geometry")
