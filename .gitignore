@@ -2,6 +2,7 @@ _paper
 outputs/*.stl
 results/*.json
 results/*.pdf
+results/*.csv
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
