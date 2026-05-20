@@ -34,7 +34,7 @@ def callback(*args):
     elongation_best_iteration.append(gp.BEST_ELONGATION)
     triangularity_best_iteration.append(gp.BEST_TRIANGULARITY)
     ar_best_iteration.append(gp.BEST_AR)
-    print(f"\nIteration {ITERATION}: Max elongation = {gp.CURRENT_ELONGATION: .4f}," 
+    print(f"\nIteration {ITERATION}: Max elongation = {gp.CURRENT_ELONGATION: .4f},"
           f"Triangularity = {gp.CURRENT_TRIANGULARITY: .4f},"
           f"Aspect Ratio = {gp.CURRENT_AR: .4f},"
           f"xk norm = {np.linalg.norm(xk): .4f}")
@@ -67,7 +67,7 @@ if __name__ == "__main__":
         nonlinear_constraint = NonlinearConstraint(geometry_process_constraint,
                                                    [cfg.DELTA_MIN, cfg.AR_MIN],
                                                    [cfg.DELTA_MAX, cfg.AR_MAX],
-                                                   finite_diff_rel_step=cfg.FDRS)        
+                                                   finite_diff_rel_step=cfg.FDRS)
         result = minimize(geometry_process_optimization, x0,
                       method=cfg.METHOD,
                       options={'maxiter': cfg.MAX_ITER, 'finite_diff_rel_step': cfg.FDRS},
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     elif cfg.METHOD == 'SLSQP':
         nonlinear_constraint = NonlinearConstraint(geometry_process_constraint,
                                                    [cfg.DELTA_MIN, cfg.AR_MIN],
-                                                   [cfg.DELTA_MAX, cfg.AR_MAX])        
+                                                   [cfg.DELTA_MAX, cfg.AR_MAX])
         result = minimize(geometry_process_optimization, x0,
                       method=cfg.METHOD,
                       options={'maxiter': cfg.MAX_ITER, "eps": cfg.FDRS},
@@ -92,7 +92,7 @@ if __name__ == "__main__":
     print("Optimization result:", result)
     if cfg.STUDY_NAME == "Spherical":
         toroidal_sections, poloidal_sections = gf.delinearize_data(result.x)
-        write_geometry_parameters_to_file(toroidal_sections, poloidal_sections, 
+        write_geometry_parameters_to_file(toroidal_sections, poloidal_sections,
                                           data_format, "./results/"+
                                             cfg.STUDY_NAME + "_" + cfg.METHOD +
                                               "_optimized_geometry.json")
@@ -107,8 +107,7 @@ if __name__ == "__main__":
         print(f"Best elongation optimised : {gp.BEST_ELONGATION}")
         gp.BEST_ELONGATION = geometry_construct(toroidal_sections, poloidal_sections,
                                                  1, plot=True, filename=cfg.STUDY_NAME +
-                                                   "_" + cfg.METHOD +"_best_geometry")
-    
+                                                   "_" + cfg.METHOD +"_best_geometry")    
     elongation_current_iteration.append(gp.CURRENT_ELONGATION)
     triangularity_current_iteration.append(gp.CURRENT_TRIANGULARITY)
     ar_current_iteration.append(gp.CURRENT_AR)

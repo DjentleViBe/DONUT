@@ -3,14 +3,14 @@ This file contains global configuration parameters and settings
 that can be used across the project."""
 
 # optimsation parameters
-MAX_ITER = 5
+MAX_ITER = 2
 TOLERANCE = 1e-6
 STUDY_NAME = "Spherical"
-# 'COBYLA' 
+# 'COBYLA'
 # 'Nelder-Mead'
 # 'L-BFGS-B'
 # 'trust-constr'
-METHOD = 'SLSQP'  
+METHOD = 'COBYLA'
 K_SMOOTH = 20.0
 PHI_T = 2
 THETA_T = 2

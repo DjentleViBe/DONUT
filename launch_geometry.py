@@ -91,6 +91,7 @@ def geometry_preprocess(toroidal_sections, poloidal_sections, mode):
 def geometry_elongation(poloidal_sections, x_moved_collections,
                         y_moved_collections, z_moved_collections,
                         toroidal_tangents, plot=False):
+    """Computes elongation from coordinates"""
     guide_vane_collections = []
     file_list = []
     elongation_list = []
@@ -122,7 +123,7 @@ def geometry_elongation(poloidal_sections, x_moved_collections,
         epsilon_max = max(vals)
         elongation_list.append(epsilon_max)
     return elongation_list, file_list, guide_vane_collections
-    
+
 def geometry_construct(toroidal_sections, poloidal_sections, mode, plot=False, filename=None):
     """
     Construct the geometry based on the provided toroidal and poloidal sections.
@@ -136,36 +137,49 @@ def geometry_construct(toroidal_sections, poloidal_sections, mode, plot=False, f
         x_moved_collections ,y_moved_collections, z_moved_collections, \
             ctrl_x_collections, ctrl_y_collections, \
             toroidal_coordinates, toroidal_tangents, \
-                 x, y, z, ctrl_x, ctrl_y, ctrl_z = geometry_preprocess(toroidal_sections, poloidal_sections, mode)
+                 x, y, z, ctrl_x, ctrl_y, ctrl_z = geometry_preprocess(toroidal_sections,
+                                                                       poloidal_sections,
+                                                                       mode)
 
     elongation_list, file_list, guide_vane_collections = geometry_elongation(poloidal_sections, \
-                                          x_moved_collections, y_moved_collections, z_moved_collections, \
-                                            toroidal_tangents, plot=True)
+                                                                x_moved_collections,
+                                                                y_moved_collections,
+                                                                z_moved_collections, \
+                                                                toroidal_tangents, plot=True)
     # gp.CURRENT_ELONGATION = np.percentile(elongation_list, 95)
     gp.CURRENT_ELONGATION = max(elongation_list)
     gp.CURRENT_TRIANGULARITY = compute_average_triangularity(x_collections, y_collections)
-    gp.CURRENT_AR = compute_average_aspect_ratio(x_moved_collections, y_moved_collections, z_moved_collections)
+    gp.CURRENT_AR = compute_average_aspect_ratio(x_moved_collections,
+                                                  y_moved_collections,
+                                                    z_moved_collections)
 
     if plot:
-        merge_stls(file_list, "./outputs/" + cfg.STUDY_NAME + "_" + cfg.METHOD + "_" + filename + ".stl")
+        merge_stls(file_list, "./outputs/" + cfg.STUDY_NAME + "_" +
+                    cfg.METHOD + "_" + filename + ".stl")
         plot_geometry([x_collections, y_collections], [ctrl_x_collections, ctrl_y_collections],
                   [x, y, z], [ctrl_x, ctrl_y, ctrl_z],
                   [x_moved_collections, y_moved_collections, z_moved_collections],
-                  guide_vane_collections, "./outputs/" + cfg.STUDY_NAME + "_" + cfg.METHOD + "_" + filename + ".stl",
+                  guide_vane_collections, "./outputs/" + cfg.STUDY_NAME +
+                    "_" + cfg.METHOD + "_" + filename + ".stl",
                   filename=filename)
     return gp.CURRENT_ELONGATION
 
 def geometry_optimise(toroidal_sections, poloidal_sections):
     """
     Optimize the geometry by adjusting the parameters of the toroidal and poloidal sections.
-    This function can be used to minimize the elongation or other objective functions related to the geometry.
+    This function can be used to minimize the elongation or other objective 
+    functions related to the geometry.
     """
-    x_collections, y_collections, \
+    _, _, \
         x_moved_collections ,y_moved_collections, z_moved_collections, \
-            _, _, _, toroidal_tangents, _, _, _, _, _, _ = geometry_preprocess(toroidal_sections, poloidal_sections, mode=1)
+            _, _, _, toroidal_tangents, _, _, _, _, _, _ = geometry_preprocess(toroidal_sections,
+                                                                               poloidal_sections,
+                                                                               mode=1)
 
     elongation_list, _, _ = geometry_elongation(poloidal_sections, \
-                                          x_moved_collections, y_moved_collections, z_moved_collections, \
+                                          x_moved_collections,
+                                          y_moved_collections,
+                                          z_moved_collections, \
                                             toroidal_tangents, plot=False)
     # gp.CURRENT_ELONGATION = np.percentile(elongation_list, 95)
     gp.CURRENT_ELONGATION = max(elongation_list)
@@ -174,18 +188,25 @@ def geometry_optimise(toroidal_sections, poloidal_sections):
 def geometry_constraint(toroidal_sections, poloidal_sections):
     """
     Compute the constraints for the geometry optimization problem.
-    This function can be used to enforce certain geometric properties or limitations during the optimization process.
+    This function can be used to enforce certain geometric properties or
+    limitations during the optimization process.
     """
     x_collections, y_collections, \
         x_moved_collections ,y_moved_collections, z_moved_collections, \
-            _, _, _, toroidal_tangents, _, _, _, _, _, _ = geometry_preprocess(toroidal_sections, poloidal_sections, mode=1)
+            _, _, _, toroidal_tangents, _, _, _, _, _, _ = geometry_preprocess(toroidal_sections,
+                                                                               poloidal_sections,
+                                                                               mode=1)
 
-    elongation_list, _, _ = geometry_elongation(poloidal_sections, \
-                                          x_moved_collections, y_moved_collections, z_moved_collections, \
-                                            toroidal_tangents, plot=False)
+    #elongation_list, _, _ = geometry_elongation(poloidal_sections, \
+    #                                      x_moved_collections,
+    #                                      y_moved_collections,
+    #                                      z_moved_collections,
+    #                                        toroidal_tangents, plot=False)
     # gp.CURRENT_ELONGATION = np.percentile(elongation_list, 95)
     gp.CURRENT_TRIANGULARITY = compute_average_triangularity(x_collections, y_collections)
-    gp.CURRENT_AR = compute_average_aspect_ratio(x_moved_collections, y_moved_collections, z_moved_collections)
+    gp.CURRENT_AR = compute_average_aspect_ratio(x_moved_collections,
+                                                 y_moved_collections,
+                                                 z_moved_collections)
     return gp.CURRENT_TRIANGULARITY, gp.CURRENT_AR
 
 def geometry_pipeline(toroidal_sections, poloidal_sections):
