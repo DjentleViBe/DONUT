@@ -11,6 +11,9 @@ BEST_ELONGATION = None
 FUNC_EVAL = 0
 CONSTR_EVAL = 0
 FORMAT = None
+elongation_history = []
+triangularity_history = []
+ar_history = []
 
 class Evaluator:
     def __init__(self):
@@ -44,6 +47,7 @@ class Tracker:
 evaluator = Evaluator()
 
 def geometry_process_optimization(x):
+    global elongation_history, triangularity_history, ar_history
     global FUNC_EVAL
     global CURRENT_TRIANGULARITY, CURRENT_AR, BEST_ELONGATION
     FUNC_EVAL += 1
@@ -71,6 +75,9 @@ def geometry_process_optimization(x):
         f"Triangularity: {r['triangularity']:.4f}, "
         f"Aspect Ratio: {r['ar']:.4f}, "
         f"Penalty: {total_penalty:.4f}")
+        elongation_history.append(r["elongation"])
+        triangularity_history.append(r['triangularity'])
+        ar_history.append(r['ar'])
         return r["elongation"] + total_penalty
     else:
         # print("x:", x)
@@ -83,6 +90,9 @@ def geometry_process_optimization(x):
         f"Objective: {r['elongation']:.4f}, "
         f"Triangularity: {r['triangularity']:.4f}, "
         f"Aspect Ratio: {r['ar']:.4f}")
+        elongation_history.append(r["elongation"])
+        triangularity_history.append(r['triangularity'])
+        ar_history.append(r['ar'])
         return r["elongation"]
 
 def geometry_process_constraint(x):

@@ -12,8 +12,12 @@ from geometry.geometry_process import geometry_process_optimization, geometry_pr
 import geometry.geometry_fourier as gf
 from launch_geometry import geometry_construct
 from geometry.geometry_writer import write_geometry_parameters_to_file
+from file_operations import write_to_csv
 
 ITERATION = 0  # external counter
+elongation_iteration = []
+triangularity_iteration = []
+ar_iteration = []
 
 def callback(*args):
     """callback function to be called after each optimization iteration. 
@@ -21,7 +25,10 @@ def callback(*args):
     global ITERATION
     ITERATION += 1
     xk = args[0]
-    print(f"\nIteration {ITERATION}: Max elongation = {gp.BEST_ELONGATION: .4f}," 
+    elongation_iteration.append(gp.CURRENT_ELONGATION)
+    triangularity_iteration.append(gp.CURRENT_TRIANGULARITY)
+    ar_iteration.append(gp.CURRENT_AR)
+    print(f"\nIteration {ITERATION}: Max elongation = {gp.CURRENT_ELONGATION: .4f}," 
           f"Triangularity = {gp.CURRENT_TRIANGULARITY: .4f},"
           f"Aspect Ratio = {gp.CURRENT_AR: .4f},"
           f"xk norm = {np.linalg.norm(xk): .4f}")
@@ -35,7 +42,9 @@ if __name__ == "__main__":
         write_geometry_parameters_to_file(toroidal_sections, poloidal_sections, data_format, "./results/"+ cfg.STUDY_NAME + "_" + cfg.METHOD + "_initial_geometry.json")
     gp.CURRENT_ELONGATION = geometry_construct(toroidal_sections, poloidal_sections, 1, plot=True,
                        filename=cfg.STUDY_NAME + "_" + cfg.METHOD +"_initial_geometry")
-
+    elongation_iteration.append(gp.CURRENT_ELONGATION)
+    triangularity_iteration.append(gp.CURRENT_TRIANGULARITY)
+    ar_iteration.append(gp.CURRENT_AR)
     if cfg.METHOD == 'COBYLA':
         result = minimize(geometry_process_optimization, x0,
                       method=cfg.METHOD,
@@ -73,7 +82,10 @@ if __name__ == "__main__":
                       callback=callback)
 
     print("Optimization result:", result)
-    
+    write_to_csv(gp.elongation_history, gp.triangularity_history, gp.ar_history,
+                 filename="./results/" + cfg.STUDY_NAME + "_" + cfg.METHOD +"_history.csv")
+    write_to_csv(elongation_iteration, triangularity_iteration, ar_iteration,
+                 filename="./results/" + cfg.STUDY_NAME + "_" + cfg.METHOD +"_iteration.csv")
     if cfg.STUDY_NAME == "Spherical":
         toroidal_sections, poloidal_sections = gf.delinearize_data(result.x)
         write_geometry_parameters_to_file(toroidal_sections, poloidal_sections, data_format, "./results/"+ cfg.STUDY_NAME + "_" + cfg.METHOD + "_optimized_geometry.json")
