@@ -10,14 +10,17 @@ import config as cfg
 import geometry.geometry_process as gp
 from geometry.geometry_process import geometry_process_optimization, geometry_process_constraint
 import geometry.geometry_fourier as gf
-from launch_geometry import geometry_construct
 from geometry.geometry_writer import write_geometry_parameters_to_file
+from launch_geometry import geometry_construct
 from file_operations import write_to_csv
 
 ITERATION = 0  # external counter
-elongation_iteration = []
-triangularity_iteration = []
-ar_iteration = []
+elongation_current_iteration = []
+triangularity_current_iteration = []
+ar_current_iteration = []
+elongation_best_iteration = []
+triangularity_best_iteration = []
+ar_best_iteration = []
 
 def callback(*args):
     """callback function to be called after each optimization iteration. 
@@ -25,9 +28,12 @@ def callback(*args):
     global ITERATION
     ITERATION += 1
     xk = args[0]
-    elongation_iteration.append(gp.CURRENT_ELONGATION)
-    triangularity_iteration.append(gp.CURRENT_TRIANGULARITY)
-    ar_iteration.append(gp.CURRENT_AR)
+    elongation_current_iteration.append(gp.CURRENT_ELONGATION)
+    triangularity_current_iteration.append(gp.CURRENT_TRIANGULARITY)
+    ar_current_iteration.append(gp.CURRENT_AR)
+    elongation_best_iteration.append(gp.BEST_ELONGATION)
+    triangularity_best_iteration.append(gp.BEST_TRIANGULARITY)
+    ar_best_iteration.append(gp.BEST_AR)
     print(f"\nIteration {ITERATION}: Max elongation = {gp.CURRENT_ELONGATION: .4f}," 
           f"Triangularity = {gp.CURRENT_TRIANGULARITY: .4f},"
           f"Aspect Ratio = {gp.CURRENT_AR: .4f},"
@@ -39,12 +45,14 @@ if __name__ == "__main__":
         x0, data_format = gf.linearize_data("./inputs/toroidal_section.json")
         gp.FORMAT = data_format
         toroidal_sections, poloidal_sections = gf.delinearize_data(x0)
-        write_geometry_parameters_to_file(toroidal_sections, poloidal_sections, data_format, "./results/"+ cfg.STUDY_NAME + "_" + cfg.METHOD + "_initial_geometry.json")
+        write_geometry_parameters_to_file(toroidal_sections, poloidal_sections,
+                                          data_format, "./results/"+ cfg.STUDY_NAME
+                                          + "_" + cfg.METHOD + "_initial_geometry.json")
     gp.CURRENT_ELONGATION = geometry_construct(toroidal_sections, poloidal_sections, 1, plot=True,
                        filename=cfg.STUDY_NAME + "_" + cfg.METHOD +"_initial_geometry")
-    elongation_iteration.append(gp.CURRENT_ELONGATION)
-    triangularity_iteration.append(gp.CURRENT_TRIANGULARITY)
-    ar_iteration.append(gp.CURRENT_AR)
+    elongation_current_iteration.append(gp.CURRENT_ELONGATION)
+    triangularity_current_iteration.append(gp.CURRENT_TRIANGULARITY)
+    ar_current_iteration.append(gp.CURRENT_AR)
     if cfg.METHOD == 'COBYLA':
         result = minimize(geometry_process_optimization, x0,
                       method=cfg.METHOD,
@@ -84,14 +92,34 @@ if __name__ == "__main__":
     print("Optimization result:", result)
     if cfg.STUDY_NAME == "Spherical":
         toroidal_sections, poloidal_sections = gf.delinearize_data(result.x)
-        write_geometry_parameters_to_file(toroidal_sections, poloidal_sections, data_format, "./results/"+ cfg.STUDY_NAME + "_" + cfg.METHOD + "_optimized_geometry.json")
-    gp.CURRENT_ELONGATION = geometry_construct(toroidal_sections, poloidal_sections, 1, plot=True,
-                    filename=cfg.STUDY_NAME + "_" + cfg.METHOD +"_optimized_geometry")
-    elongation_iteration.append(gp.CURRENT_ELONGATION)
-    triangularity_iteration.append(gp.CURRENT_TRIANGULARITY)
-    ar_iteration.append(gp.CURRENT_AR)
+        write_geometry_parameters_to_file(toroidal_sections, poloidal_sections, 
+                                          data_format, "./results/"+
+                                            cfg.STUDY_NAME + "_" + cfg.METHOD +
+                                              "_optimized_geometry.json")
+        print(f"Max elongation optimised : {gp.CURRENT_ELONGATION}")
+        gp.CURRENT_ELONGATION = geometry_construct(toroidal_sections, poloidal_sections,
+                                                    1, plot=True, filename=cfg.STUDY_NAME +
+                                                      "_" + cfg.METHOD +"_optimized_geometry")
+        toroidal_sections, poloidal_sections = gf.delinearize_data(gp.BEST_X)
+        write_geometry_parameters_to_file(toroidal_sections, poloidal_sections,
+                                           data_format, "./results/"+ cfg.STUDY_NAME +
+                                             "_" + cfg.METHOD + "_best_geometry.json")
+        print(f"Max elongation optimised : {gp.BEST_ELONGATION}")
+        gp.BEST_ELONGATION = geometry_construct(toroidal_sections, poloidal_sections,
+                                                 1, plot=True, filename=cfg.STUDY_NAME +
+                                                   "_" + cfg.METHOD +"_best_geometry")
+    
+    elongation_current_iteration.append(gp.CURRENT_ELONGATION)
+    triangularity_current_iteration.append(gp.CURRENT_TRIANGULARITY)
+    ar_current_iteration.append(gp.CURRENT_AR)
+    elongation_best_iteration.append(gp.BEST_ELONGATION)
+    triangularity_best_iteration.append(gp.BEST_TRIANGULARITY)
+    ar_best_iteration.append(gp.BEST_AR)
     write_to_csv(gp.elongation_history, gp.triangularity_history, gp.ar_history,
                  filename="./results/" + cfg.STUDY_NAME + "_" + cfg.METHOD +"_history.csv")
-    write_to_csv(elongation_iteration, triangularity_iteration, ar_iteration,
-                 filename="./results/" + cfg.STUDY_NAME + "_" + cfg.METHOD +"_iteration.csv")
-    
+    write_to_csv(elongation_current_iteration, triangularity_current_iteration,
+                  ar_current_iteration, filename="./results/" + cfg.STUDY_NAME +
+                    "_" + cfg.METHOD +"_current_iteration.csv")
+    write_to_csv(elongation_best_iteration, triangularity_best_iteration,
+                  ar_best_iteration, filename="./results/" + cfg.STUDY_NAME +
+                    "_" + cfg.METHOD +"_best_iteration.csv")

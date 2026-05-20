@@ -162,4 +162,13 @@ def plot_geometry(points_2d, ctrl_2d,
     ha='left',
     va='center',
     fontsize=12)
+    label = rf'''
+    $\epsilon_{{\max}}: {gp.BEST_ELONGATION:.4f}$
+    $A: {gp.BEST_AR:.4f}$
+    $\bar{{\delta}}: {gp.BEST_TRIANGULARITY:.4f}$'''
+    ax4.text(0.45, 0.5,
+    label,
+    ha='left',
+    va='center',
+    fontsize=12)
     plt.savefig(f"./results/{filename}.pdf")

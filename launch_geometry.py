@@ -88,7 +88,9 @@ def geometry_preprocess(toroidal_sections, poloidal_sections, mode):
             toroidal_coordinates, toroidal_tangents, \
             x, y, z, ctrl_x, ctrl_y, ctrl_z
 
-def geometry_elongation(poloidal_sections, x_moved_collections, y_moved_collections, z_moved_collections, toroidal_tangents, plot=False):
+def geometry_elongation(poloidal_sections, x_moved_collections,
+                        y_moved_collections, z_moved_collections,
+                        toroidal_tangents, plot=False):
     guide_vane_collections = []
     file_list = []
     elongation_list = []
@@ -111,7 +113,8 @@ def geometry_elongation(poloidal_sections, x_moved_collections, y_moved_collecti
         )
         if plot:
             vertices, faces = loft_revolved(np.asarray(guide_vane_collections[i]))
-            write_stl(vertices, faces, f"./outputs/{cfg.STUDY_NAME}_{cfg.METHOD}_revolved_surface+{i}.stl")
+            write_stl(vertices, faces,
+             f"./outputs/{cfg.STUDY_NAME}_{cfg.METHOD}_revolved_surface+{i}.stl")
             file_list.append(f"./outputs/{cfg.STUDY_NAME}_{cfg.METHOD}_revolved_surface+{i}.stl")
         vals = [compute_elongation_fit(np.asarray(guide_vane_collections[i])[:, j, :])
                 for j in range(100)]
@@ -150,7 +153,6 @@ def geometry_construct(toroidal_sections, poloidal_sections, mode, plot=False, f
                   [x_moved_collections, y_moved_collections, z_moved_collections],
                   guide_vane_collections, "./outputs/" + cfg.STUDY_NAME + "_" + cfg.METHOD + "_" + filename + ".stl",
                   filename=filename)
-    print(f"Max elongation : {gp.CURRENT_ELONGATION}")
     return gp.CURRENT_ELONGATION
 
 def geometry_optimise(toroidal_sections, poloidal_sections):

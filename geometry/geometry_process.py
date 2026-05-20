@@ -1,5 +1,4 @@
 import numpy as np
-import sys
 from launch_geometry import geometry_pipeline
 import geometry.geometry_fourier as gf
 import config as cfg
@@ -7,10 +6,14 @@ import config as cfg
 CURRENT_ELONGATION = None
 CURRENT_TRIANGULARITY = None
 CURRENT_AR = None
-BEST_ELONGATION = None
+BEST_ELONGATION = 0.0
+BEST_TRIANGULARITY = 0.0
+BEST_AR = 0.0
+BEST_X = None
 FUNC_EVAL = 0
 CONSTR_EVAL = 0
 FORMAT = None
+best_elongation_history = []
 elongation_history = []
 triangularity_history = []
 ar_history = []
@@ -49,7 +52,9 @@ evaluator = Evaluator()
 def geometry_process_optimization(x):
     global elongation_history, triangularity_history, ar_history
     global FUNC_EVAL
-    global CURRENT_TRIANGULARITY, CURRENT_AR, BEST_ELONGATION
+    global CURRENT_TRIANGULARITY, CURRENT_AR, CURRENT_ELONGATION
+    global BEST_TRIANGULARITY, BEST_AR, BEST_ELONGATION
+    global BEST_X
     FUNC_EVAL += 1
     penalty_tri = 0.0
     penalty_AR = 0.0
@@ -67,14 +72,21 @@ def geometry_process_optimization(x):
         total_penalty = penalty_tri + penalty_AR
         CURRENT_AR = r["ar"]
         CURRENT_TRIANGULARITY = r["triangularity"]
-        if BEST_ELONGATION is None or r["elongation"] < BEST_ELONGATION:
-            BEST_ELONGATION = r["elongation"]
+        constraints_ok = (cfg.DELTA_MIN <= r["triangularity"] <= cfg.DELTA_MAX
+                            and cfg.AR_MIN <= r["ar"] <= cfg.AR_MAX)
+        if constraints_ok:
+            if BEST_ELONGATION == 0.0 or r["elongation"] < BEST_ELONGATION:
+                BEST_ELONGATION = r["elongation"]
+                BEST_X = np.copy(x)
+                BEST_TRIANGULARITY = r["triangularity"]
+                BEST_AR = r["ar"]
         print(
         f"Func eval {FUNC_EVAL}: "
         f"Objective: {r['elongation']:.4f}, "
         f"Triangularity: {r['triangularity']:.4f}, "
         f"Aspect Ratio: {r['ar']:.4f}, "
         f"Penalty: {total_penalty:.4f}")
+        best_elongation_history.append(BEST_ELONGATION)
         elongation_history.append(r["elongation"])
         triangularity_history.append(r['triangularity'])
         ar_history.append(r['ar'])
@@ -83,13 +95,20 @@ def geometry_process_optimization(x):
         # print("x:", x)
         CURRENT_AR = r["ar"]
         CURRENT_TRIANGULARITY = r["triangularity"]
-        if BEST_ELONGATION is None or r["elongation"] < BEST_ELONGATION:
-            BEST_ELONGATION = r["elongation"]
+        constraints_ok = (cfg.DELTA_MIN <= r["triangularity"] <= cfg.DELTA_MAX
+                            and cfg.AR_MIN <= r["ar"] <= cfg.AR_MAX)
+        if constraints_ok:
+            if BEST_ELONGATION == 0.0 or r["elongation"] < BEST_ELONGATION:
+                BEST_ELONGATION = r["elongation"]
+                BEST_X = np.copy(x)
+                BEST_TRIANGULARITY = r["triangularity"]
+                BEST_AR = r["ar"]
         print(
         f"Func eval {FUNC_EVAL}: "
         f"Objective: {r['elongation']:.4f}, "
         f"Triangularity: {r['triangularity']:.4f}, "
         f"Aspect Ratio: {r['ar']:.4f}")
+        best_elongation_history.append(BEST_ELONGATION)
         elongation_history.append(r["elongation"])
         triangularity_history.append(r['triangularity'])
         ar_history.append(r['ar'])

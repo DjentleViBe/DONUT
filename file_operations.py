@@ -18,7 +18,10 @@ def list_files_in_directory(directory):
     return [str(file) for file in p.iterdir() if file.is_file()]
 
 def write_to_csv(*cols, filename="output.csv", header=None):
-    with open(filename, "w", newline="") as f:
+    """
+    writes csv to file
+    """
+    with open(filename, "w", encoding='utf-8', newline="") as f:
         writer = csv.writer(f)
         # optional header
         if header is not None:
