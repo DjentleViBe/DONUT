@@ -82,12 +82,16 @@ if __name__ == "__main__":
                       callback=callback)
 
     print("Optimization result:", result)
-    write_to_csv(gp.elongation_history, gp.triangularity_history, gp.ar_history,
-                 filename="./results/" + cfg.STUDY_NAME + "_" + cfg.METHOD +"_history.csv")
-    write_to_csv(elongation_iteration, triangularity_iteration, ar_iteration,
-                 filename="./results/" + cfg.STUDY_NAME + "_" + cfg.METHOD +"_iteration.csv")
     if cfg.STUDY_NAME == "Spherical":
         toroidal_sections, poloidal_sections = gf.delinearize_data(result.x)
         write_geometry_parameters_to_file(toroidal_sections, poloidal_sections, data_format, "./results/"+ cfg.STUDY_NAME + "_" + cfg.METHOD + "_optimized_geometry.json")
     gp.CURRENT_ELONGATION = geometry_construct(toroidal_sections, poloidal_sections, 1, plot=True,
                     filename=cfg.STUDY_NAME + "_" + cfg.METHOD +"_optimized_geometry")
+    elongation_iteration.append(gp.CURRENT_ELONGATION)
+    triangularity_iteration.append(gp.CURRENT_TRIANGULARITY)
+    ar_iteration.append(gp.CURRENT_AR)
+    write_to_csv(gp.elongation_history, gp.triangularity_history, gp.ar_history,
+                 filename="./results/" + cfg.STUDY_NAME + "_" + cfg.METHOD +"_history.csv")
+    write_to_csv(elongation_iteration, triangularity_iteration, ar_iteration,
+                 filename="./results/" + cfg.STUDY_NAME + "_" + cfg.METHOD +"_iteration.csv")
+    
