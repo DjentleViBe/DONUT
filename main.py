@@ -104,7 +104,7 @@ if __name__ == "__main__":
         write_geometry_parameters_to_file(toroidal_sections, poloidal_sections,
                                            data_format, "./results/"+ cfg.STUDY_NAME +
                                              "_" + cfg.METHOD + "_best_geometry.json")
-        print(f"Max elongation optimised : {gp.BEST_ELONGATION}")
+        print(f"Best elongation optimised : {gp.BEST_ELONGATION}")
         gp.BEST_ELONGATION = geometry_construct(toroidal_sections, poloidal_sections,
                                                  1, plot=True, filename=cfg.STUDY_NAME +
                                                    "_" + cfg.METHOD +"_best_geometry")
