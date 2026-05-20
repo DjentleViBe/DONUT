@@ -124,7 +124,7 @@ def geometry_elongation(poloidal_sections, x_moved_collections,
         elongation_list.append(epsilon_max)
     return elongation_list, file_list, guide_vane_collections
 
-def geometry_construct(toroidal_sections, poloidal_sections, mode, plot=False, filename=None):
+def geometry_construct(toroidal_sections, poloidal_sections, mode, init=False, plot=False, filename=None):
     """
     Construct the geometry based on the provided toroidal and poloidal sections.
     Args:
@@ -147,12 +147,15 @@ def geometry_construct(toroidal_sections, poloidal_sections, mode, plot=False, f
                                                                 z_moved_collections, \
                                                                 toroidal_tangents, plot=True)
     # gp.CURRENT_ELONGATION = np.percentile(elongation_list, 95)
-    gp.CURRENT_ELONGATION = max(elongation_list)
-    gp.CURRENT_TRIANGULARITY = compute_average_triangularity(x_collections, y_collections)
-    gp.CURRENT_AR = compute_average_aspect_ratio(x_moved_collections,
-                                                  y_moved_collections,
-                                                    z_moved_collections)
-
+    CE = max(elongation_list)
+    CT = compute_average_triangularity(x_collections, y_collections)
+    AR = compute_average_aspect_ratio(x_moved_collections,
+                                      y_moved_collections,
+                                      z_moved_collections)
+    if init:
+        gp.CURRENT_ELONGATION = CE
+        gp.CURRENT_AR = AR
+        gp.CURRENT_TRIANGULARITY = CT
     if plot:
         merge_stls(file_list, "./outputs/" + cfg.STUDY_NAME + "_" +
                     cfg.METHOD + "_" + filename + ".stl")
@@ -162,7 +165,7 @@ def geometry_construct(toroidal_sections, poloidal_sections, mode, plot=False, f
                   guide_vane_collections, "./outputs/" + cfg.STUDY_NAME +
                     "_" + cfg.METHOD + "_" + filename + ".stl",
                   filename=filename)
-    return gp.CURRENT_ELONGATION
+    return CE, CT, AR
 
 def geometry_optimise(toroidal_sections, poloidal_sections):
     """

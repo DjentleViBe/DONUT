@@ -48,7 +48,8 @@ if __name__ == "__main__":
         write_geometry_parameters_to_file(toroidal_sections, poloidal_sections,
                                           data_format, "./results/"+ cfg.STUDY_NAME
                                           + "_" + cfg.METHOD + "_initial_geometry.json")
-    gp.CURRENT_ELONGATION = geometry_construct(toroidal_sections, poloidal_sections, 1, plot=True,
+    gp.CURRENT_ELONGATION, gp.CURRENT_TRIANGULARITY, gp.CURRENT_AR = geometry_construct(toroidal_sections, 
+                                                              poloidal_sections, 1, init=True, plot=True,
                        filename=cfg.STUDY_NAME + "_" + cfg.METHOD +"_initial_geometry")
     elongation_current_iteration.append(gp.CURRENT_ELONGATION)
     triangularity_current_iteration.append(gp.CURRENT_TRIANGULARITY)
@@ -97,7 +98,7 @@ if __name__ == "__main__":
                                             cfg.STUDY_NAME + "_" + cfg.METHOD +
                                               "_optimized_geometry.json")
         print(f"Max elongation optimised : {gp.CURRENT_ELONGATION}")
-        gp.CURRENT_ELONGATION = geometry_construct(toroidal_sections, poloidal_sections,
+        geometry_construct(toroidal_sections, poloidal_sections,
                                                     1, plot=True, filename=cfg.STUDY_NAME +
                                                       "_" + cfg.METHOD +"_optimized_geometry")
         toroidal_sections, poloidal_sections = gf.delinearize_data(gp.BEST_X)
@@ -105,12 +106,9 @@ if __name__ == "__main__":
                                            data_format, "./results/"+ cfg.STUDY_NAME +
                                              "_" + cfg.METHOD + "_best_geometry.json")
         print(f"Best elongation optimised : {gp.BEST_ELONGATION}")
-        gp.BEST_ELONGATION = geometry_construct(toroidal_sections, poloidal_sections,
+        geometry_construct(toroidal_sections, poloidal_sections,
                                                  1, plot=True, filename=cfg.STUDY_NAME +
                                                    "_" + cfg.METHOD +"_best_geometry")    
-    elongation_current_iteration.append(gp.CURRENT_ELONGATION)
-    triangularity_current_iteration.append(gp.CURRENT_TRIANGULARITY)
-    ar_current_iteration.append(gp.CURRENT_AR)
     elongation_best_iteration.append(gp.BEST_ELONGATION)
     triangularity_best_iteration.append(gp.BEST_TRIANGULARITY)
     ar_best_iteration.append(gp.BEST_AR)
