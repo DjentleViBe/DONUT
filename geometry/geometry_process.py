@@ -10,6 +10,7 @@ BEST_ELONGATION = 0.0
 BEST_TRIANGULARITY = 0.0
 BEST_AR = 0.0
 BEST_X = None
+CURRENT_X = None
 FUNC_EVAL = 0
 CONSTR_EVAL = 0
 FORMAT = None
@@ -54,7 +55,7 @@ def geometry_process_optimization(x):
     global FUNC_EVAL
     global CURRENT_TRIANGULARITY, CURRENT_AR, CURRENT_ELONGATION
     global BEST_TRIANGULARITY, BEST_AR, BEST_ELONGATION
-    global BEST_X
+    global BEST_X, CURRENT_X
     FUNC_EVAL += 1
     penalty_tri = 0.0
     penalty_AR = 0.0
@@ -80,6 +81,8 @@ def geometry_process_optimization(x):
                 BEST_X = np.copy(x)
                 BEST_TRIANGULARITY = r["triangularity"]
                 BEST_AR = r["ar"]
+            else:
+                CURRENT_X = np.copy(x)
         print(
         f"Func eval {FUNC_EVAL}: "
         f"Objective: {r['elongation']:.4f}, "
@@ -103,6 +106,8 @@ def geometry_process_optimization(x):
                 BEST_X = np.copy(x)
                 BEST_TRIANGULARITY = r["triangularity"]
                 BEST_AR = r["ar"]
+            else:
+                CURRENT_X = np.copy(x)
         print(
         f"Func eval {FUNC_EVAL}: "
         f"Objective: {r['elongation']:.4f}, "
