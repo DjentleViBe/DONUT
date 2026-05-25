@@ -17,7 +17,7 @@ from geometry.geometry_reader import get_poloidal_sections_from_toroidal_file, \
                             get_geometry_parameters_from_toroidal_file
 from geometry.geometry_operations import rotate_poloidal_section
 
-def plot_typetwo(points_2d, ctrl_2d,
+def plot_typethree(points_2d, ctrl_2d,
                   points_3d, ctrl_3d,
                   moved_points_3d,
                   moved_ctrl_points,
@@ -70,8 +70,21 @@ def plot_typetwo(points_2d, ctrl_2d,
                 depthshade=False)
     ax3.scatter(toroidal_coordinates[3][0],
                 toroidal_coordinates[3][1],
-                    toroidal_coordinates[3][2], color='k', depthshade=False)
+                toroidal_coordinates[3][2], color='k', depthshade=False)
 
+    # original point
+    x0 = moved_ctrl_points[0][3]
+    y0 = moved_ctrl_points[1][3]
+    z0 = moved_ctrl_points[2][3]
+    # angle range (40 degrees)
+    theta = np.linspace(0, np.deg2rad(40), 200)
+    # rotation
+    for i in range(4):
+        x = x0[i] * np.cos(theta) - y0[i] * np.sin(theta)
+        y = x0[i] * np.sin(theta) + y0[i] * np.cos(theta)
+        z = np.full_like(theta, z0[i])
+        # plot
+        ax3.plot(x, y, z, color = cfg.color[3], linestyle = ':')
     ax3.plot(points_3d[0], points_3d[1], points_3d[2], 
              color = 'k', linestyle = '--', label = 'toroidal guide vane')
     ax3.set_xlim(-1.0, 1.0)
@@ -93,31 +106,7 @@ def plot_typetwo(points_2d, ctrl_2d,
     ax3.text(0.9, 0.3, -0.08, r'$P_1$($r_{p_1}, \psi_{1}$)', color=cfg.color[3])
     ax3.text(0.7, 0.3, -0.1, r'$\mathbf{Q}$')
     ax3.text(0.0, -0.8, -0.1, r'$\alpha$')
-    # loop around the line
-    theta = np.linspace(0, 1.6*np.pi, 200)
-    r = 0.1
-    z0 = 1.1
-    z_loop = r * np.cos(theta)
-    y_loop = -0.7 + r * np.sin(theta)
-    x_loop = -1.0 + np.full_like(theta, z0)
-
-    ax3.plot(x_loop, y_loop, z_loop, color = 'k')
-
-    # tangent direction at end
-    p0 = np.array([x_loop[-2], y_loop[-2], z_loop[-2]])
-    p1 = np.array([x_loop[-1], y_loop[-1], z_loop[-1]])
-    d = p1 - p0
-    d = d / np.linalg.norm(d)   # normalize
-    # arrow length
-    L = 0.05
-    ax3.quiver(
-        p0[0], p0[1], p0[2],
-        d[0], d[1], d[2],
-        length=L,
-        normalize=True,
-        arrow_length_ratio=1.0,
-        color='k'
-    )
+    
     plt.legend()
     plt.savefig(f"./_paper/{filename}.pdf")
 
@@ -208,13 +197,13 @@ def geometry_construct(toroidal_sections, poloidal_sections, mode, init=False, p
                                                                 z_moved_collections, \
                                                                 toroidal_tangents, plot=True)
     if plot:
-        # merge_stls(file_list, "./typetwo.stl")
-        plot_typetwo([x_collections, y_collections], [ctrl_x_collections, ctrl_y_collections],
+        # merge_stls(file_list, "./typethree.stl")
+        plot_typethree([x_collections, y_collections], [ctrl_x_collections, ctrl_y_collections],
                   [x, y, z], [ctrl_x, ctrl_y, ctrl_z],
                   [x_moved_collections, y_moved_collections, z_moved_collections],
                   [x_moved_ctrl_collections, y_moved_ctrl_collections, z_moved_ctrl_collections],
                   toroidal_coordinates,
-                  guide_vane_collections, "./typetwo.stl",
+                  guide_vane_collections, "./typethree.stl",
                   filename=filename)
     return 0
 
@@ -222,4 +211,4 @@ x0, data_format = gf.linearize_data("./inputs/toroidal_section.json")
 gp.FORMAT = data_format
 toroidal_sections, poloidal_sections = gf.delinearize_data(x0)
 geometry_construct(toroidal_sections, poloidal_sections,
-                          1, plot=True, filename="./typetwo_geometry")
+                          1, plot=True, filename="./typethree_geometry")
