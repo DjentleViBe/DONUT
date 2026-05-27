@@ -1,8 +1,14 @@
-_paper
+_paper/*
+!_paper/_scripts/
+!_paper/*.tex
+!_paper/*.bib
+!_paper/*.pdf
+
 outputs/*.stl
 results/*.json
 results/*.pdf
 results/*.csv
+*.code-workspace
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
