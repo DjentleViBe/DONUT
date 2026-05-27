@@ -40,14 +40,14 @@ def callback(*args):
           f"xk norm = {np.linalg.norm(xk):.4f}")
 
 if __name__ == "__main__":
-    if cfg.STUDY_NAME == "Type1":
-        print("Running Type1 optimization...")
-        x0, data_format = gf.linearize_data("./inputs/toroidal_section.json")
-        gp.FORMAT = data_format
-        toroidal_sections, poloidal_sections = gf.delinearize_data(x0)
-        write_geometry_parameters_to_file(toroidal_sections, poloidal_sections,
-                                          data_format, "./results/"+ cfg.STUDY_NAME
-                                          + "_" + cfg.METHOD + "_initial_geometry.json")
+    print(f"Running {cfg.STUDY_NAME} optimization...")
+    x0, data_format = gf.linearize_data("./inputs/toroidal_section.json")
+    gp.FORMAT = data_format
+    toroidal_sections, poloidal_sections = gf.delinearize_data(x0)
+    write_geometry_parameters_to_file(toroidal_sections, poloidal_sections,
+                                        data_format, "./results/"+ cfg.STUDY_NAME
+                                        + "_" + cfg.METHOD + "_initial_geometry.json")
+    
     gp.TRIAL_ELONGATION, gp.CURRENT_TRIANGULARITY, gp.CURRENT_AR = geometry_construct(toroidal_sections, 
                                                               poloidal_sections, 1, init=True, plot=True,
                        filename=cfg.STUDY_NAME + "_" + cfg.METHOD +"_initial_geometry")

@@ -24,14 +24,21 @@ def linearize_data(toroidal_file):
     theta = ((np.array(toroidal_prop.get("theta")) * np.pi / 180.0) - theta0) / theta_delta
     radius = np.array(toroidal_prop.get("radius"), dtype=np.float64)
     weights = np.array(toroidal_prop.get("weights"), dtype=np.float64)
-    sections = np.array(toroidal_prop.get("sections"), dtype=np.float64)
+    if cfg.STUDY_NAME == "Type1":
+        sections = np.array(toroidal_prop.get("sections"), dtype=np.float64)
+    elif cfg.STUDY_NAME == "Type2":
+        sections = np.array([0.0, 0.25, 0.5, 0.75], dtype=np.float64)
 
     phi_to_u = f_to_u(phi)
     combined = np.concatenate([phi_to_u, theta, radius, weights, sections])
     toroidal_array.append(combined)
     # loop through the poloidal files
     for i in range (0, toroidal_prop['N_t']):
-        with open("./inputs/poloidal_section_" + str(i + 1) + ".json", "r", encoding="utf-8") as f:
+        if cfg.STUDY_NAME == "Type1":
+            filename = "./inputs/poloidal_section_" + str(i + 1) + ".json"
+        elif cfg.STUDY_NAME == "Type2":
+            filename = "./inputs/poloidal_section.json"
+        with open(filename, "r", encoding="utf-8") as f:
             data = json.load(f)
             nval = data.get("N_s")
             psi = np.array(data.get("psi")) * np.pi / 180.0
