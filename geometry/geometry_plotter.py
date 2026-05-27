@@ -117,10 +117,17 @@ def plot_geometry(points_2d, ctrl_2d,
     ax1.set_title("Toroidal Cross Section")
 
     for i, x_section in enumerate(points_2d[0]):
-        ax2.plot(x_section, points_2d[1][i], label=f"Section {i + 1}", color = cfg.color[i])
+        if cfg.STUDY_NAME == "Type1":
+            ax2.plot(x_section, points_2d[1][i], label=f"Section {i + 1}", color = cfg.color[i])
+        elif cfg.STUDY_NAME == "Type2":
+            ax2.plot(x_section, points_2d[1][i], color = cfg.color[0])
     for j, ctrl_x_section in enumerate(ctrl_2d[0]):
-        ax2.scatter(ctrl_x_section, ctrl_2d[1][j], label=f"Control Points {j + 1}",
+        if cfg.STUDY_NAME == "Type1":
+            ax2.scatter(ctrl_x_section, ctrl_2d[1][j], label=f"Control Points {j + 1}",
                     color = cfg.color[j], marker='x')
+        if cfg.STUDY_NAME == "Type2":
+            ax2.scatter(ctrl_x_section, ctrl_2d[1][j],
+                    color = cfg.color[0], marker='x')
     ax2.grid(linestyle='--', color='gray', linewidth=0.2)
     ax2.set_aspect('equal', adjustable='box')
     ax2.set_xticks(np.arange(-1.0, 1.1, step=0.5))
@@ -133,7 +140,11 @@ def plot_geometry(points_2d, ctrl_2d,
     ax3.set_ylabel("Y")
     ax3.set_zlabel("Z")
     for i, x_section in enumerate(moved_points_3d[0]):
-        ax3.plot(x_section, moved_points_3d[1][i], moved_points_3d[2][i], color=cfg.color[i])
+        if cfg.STUDY_NAME == "Type1":
+            ax3.plot(x_section, moved_points_3d[1][i], moved_points_3d[2][i], color=cfg.color[i])
+        elif cfg.STUDY_NAME == "Type2":
+            ax3.plot(x_section, moved_points_3d[1][i], moved_points_3d[2][i], color=cfg.color[0])
+
     for j, poloidal_section in enumerate(guide_vane_collections):
         for k, guide_vane in enumerate(poloidal_section):
             x = [p[0] for p in guide_vane]
