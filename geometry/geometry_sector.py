@@ -11,7 +11,7 @@ from geometry.geometry_operations import nurbs_curve_periodic, \
 from geometry.geometry_operations import nurbs_curve
 import numpy as np
 
-def build_sketch_sector(theta, radius, degree, weights):
+def build_sketch_sector(theta, radius, degree, weights, num_points=100):
     """Build the sketch of a sector based on the geometry parameters.
     Args:   
     theta: list of angles in degrees    
@@ -36,13 +36,14 @@ def build_sketch_sector(theta, radius, degree, weights):
         degree,
         knot,
         u_start,
-        u_end]
+        u_end],
+        num_points
     )
     x, y = zip(*curve_points)
     ctrl_x, ctrl_y = zip(*ctrl_pts)
     return x, y, ctrl_x, ctrl_y
 
-def build_sketch_sector_toroidal(theta, phi, radius, degree, weights):
+def build_sketch_sector_toroidal(theta, phi, radius, degree, weights, num_points=100):
     """Build the sketch of a toroidal sector based on the geometry parameters.
     Args:   
     theta: list of angles in degrees for the poloidal direction    
@@ -68,7 +69,7 @@ def build_sketch_sector_toroidal(theta, phi, radius, degree, weights):
                                 degree,
                                 knot,
                                 u_start,
-                                u_end])
+                                u_end], num_points)
     return list(zip(*curve_points)),  list(zip(*ctrl_pts))
 
 def get_toroidal_coordinates_tangent(section_limits, points_3d):

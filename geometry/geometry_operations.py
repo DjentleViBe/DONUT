@@ -179,7 +179,7 @@ def generate_periodic_data(ctrl_pts, degree):
 
     return extended_ctrl, knot, (u_start, u_end)
 
-def nurbs_curve_periodic(inputs, num_points=200):
+def nurbs_curve_periodic(inputs, num_points=100):
     """Evaluate a periodic NURBS curve without external libraries.
     ctrl : list of control points (extended for periodicity)
     w : list of weights (extended for periodicity)

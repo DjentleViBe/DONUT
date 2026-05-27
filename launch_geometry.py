@@ -52,7 +52,8 @@ def geometry_preprocess(toroidal_sections, poloidal_sections, mode):
                                             toroidal_sections['phi'],
                                             toroidal_sections['radius'],
                                             toroidal_sections['degree'],
-                                            toroidal_sections['weights'])
+                                            toroidal_sections['weights'],
+                                            cfg.NUM_T)
     x, y, z = curve
     ctrl_x, ctrl_y, ctrl_z = ctrl
     toroidal_coordinates, toroidal_tangents = get_toroidal_coordinates_tangent(
@@ -65,12 +66,14 @@ def geometry_preprocess(toroidal_sections, poloidal_sections, mode):
             x_p, y_p, ctrl_xp, ctrl_yp = build_sketch_sector(poloid_file['theta'],
                                                     poloid_file['radius'],
                                                     poloid_file['degree'],
-                                                    poloid_file['weights'])
+                                                    poloid_file['weights'],
+                                                    cfg.NUM_P)
         else:
             x_p, y_p, ctrl_xp, ctrl_yp = build_sketch_sector(poloidal_file['psi'],
                                                     poloidal_file['radius'],
                                                     poloidal_file['degree'],
-                                                    poloidal_file['weights'])
+                                                    poloidal_file['weights'],
+                                                    cfg.NUM_P)
         x_collections.append(x_p)
         y_collections.append(y_p)
         ctrl_x_collections.append(ctrl_xp)
