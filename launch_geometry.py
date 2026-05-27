@@ -36,7 +36,7 @@ def geometry_init():
     toroid_file = get_geometry_parameters_from_toroidal_file("./inputs/toroidal_section.json")
     return poloidal_sections, toroid_file
 
-def geometry_preprocess(toroidal_sections, poloidal_sections, mode):
+def geometry_preprocess(toroidal_sections, poloidal_sections):
     """
     Preprocess the geometry data by building the sketches of the toroidal and poloidal sections.
     This function prepares the data for further processing and optimization.
@@ -63,20 +63,11 @@ def geometry_preprocess(toroidal_sections, poloidal_sections, mode):
     A = toroidal_sections['A']
     k = toroidal_sections['k']
     for i, poloidal_file in enumerate(poloidal_sections):
-        if mode == 0:
-            poloid_file = get_geometry_parameters_from_poloidal_file("./inputs/" +
-                                                    poloidal_file + ".json")
-            x_p, y_p, ctrl_xp, ctrl_yp = build_sketch_sector(poloid_file['theta'],
-                                                    poloid_file['radius'],
-                                                    poloid_file['degree'],
-                                                    poloid_file['weights'],
-                                                    cfg.NUM_P)
-        else:
-            x_p, y_p, ctrl_xp, ctrl_yp = build_sketch_sector(poloidal_file['psi'],
-                                                    poloidal_file['radius'],
-                                                    poloidal_file['degree'],
-                                                    poloidal_file['weights'],
-                                                    cfg.NUM_P)
+        x_p, y_p, ctrl_xp, ctrl_yp = build_sketch_sector(poloidal_file['psi'],
+                                                poloidal_file['radius'],
+                                                poloidal_file['degree'],
+                                                poloidal_file['weights'],
+                                                cfg.NUM_P)
         x_collections.append(x_p)
         y_collections.append(y_p)
         ctrl_x_collections.append(ctrl_xp)
@@ -151,8 +142,7 @@ def geometry_construct(toroidal_sections, poloidal_sections, mode, init=False, p
             ctrl_x_collections, ctrl_y_collections, \
             toroidal_coordinates, toroidal_tangents, \
                  x, y, z, ctrl_x, ctrl_y, ctrl_z = geometry_preprocess(toroidal_sections,
-                                                                       poloidal_sections,
-                                                                       mode)
+                                                                       poloidal_sections)
 
     elongation_list, file_list, guide_vane_collections = geometry_elongation(poloidal_sections, \
                                                                 x_moved_collections,
@@ -190,8 +180,7 @@ def geometry_optimise(toroidal_sections, poloidal_sections):
     _, _, \
         x_moved_collections ,y_moved_collections, z_moved_collections, \
             _, _, toroidal_coordinates, toroidal_tangents, _, _, _, _, _, _ = geometry_preprocess(toroidal_sections,
-                                                                               poloidal_sections,
-                                                                               mode=1)
+                                                                               poloidal_sections)
 
     elongation_list, _, _ = geometry_elongation(poloidal_sections, \
                                             x_moved_collections,
@@ -212,8 +201,7 @@ def geometry_constraint(toroidal_sections, poloidal_sections):
     x_collections, y_collections, \
         x_moved_collections ,y_moved_collections, z_moved_collections, \
             _, _, _, toroidal_tangents, _, _, _, _, _, _ = geometry_preprocess(toroidal_sections,
-                                                                               poloidal_sections,
-                                                                               mode=1)
+                                                                               poloidal_sections)
 
     gp.CURRENT_TRIANGULARITY = compute_average_triangularity(x_collections, y_collections)
     gp.CURRENT_AR = compute_average_aspect_ratio(x_moved_collections,
