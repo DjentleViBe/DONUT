@@ -26,8 +26,7 @@ class Evaluator:
 
     def evaluate(self, x):
         
-        if cfg.STUDY_NAME == "Spherical":
-            toroidal_sections, poloidal_sections = gf.delinearize_data(x)
+        toroidal_sections, poloidal_sections = gf.delinearize_data(x)
         elongation, triangularity, ar = geometry_pipeline(toroidal_sections, poloidal_sections)
         self.result = {
             "elongation": elongation,

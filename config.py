@@ -5,7 +5,7 @@ that can be used across the project."""
 # optimsation parameters
 MAX_ITER = 2
 TOLERANCE = 1e-6
-STUDY_NAME = "Spherical"
+STUDY_NAME = "Type2"
 # 'COBYLA'
 # 'Nelder-Mead'
 # 'L-BFGS-B'
@@ -26,6 +26,9 @@ AR_MAX = 10.0
 AR_WEIGHT = 1000.0
 # optimization parameters
 FDRS = 5e-2
+# geometry parameter
+NUM_P = 100
+NUM_T = 100
 # plotting parameters
 color = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728",
           "#9467bd", "#8c564b", "#e377c2", "#7f7f7f",

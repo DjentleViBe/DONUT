@@ -179,7 +179,7 @@ def generate_periodic_data(ctrl_pts, degree):
 
     return extended_ctrl, knot, (u_start, u_end)
 
-def nurbs_curve_periodic(inputs, num_points=200):
+def nurbs_curve_periodic(inputs, num_points=100):
     """Evaluate a periodic NURBS curve without external libraries.
     ctrl : list of control points (extended for periodicity)
     w : list of weights (extended for periodicity)
@@ -265,6 +265,24 @@ def rotation_matrix_from_z_to_vector(target_vector):
 
     return rval
 
+def rotation_matrix_from_vector_no_twist(vector, center):
+    """
+    center: the 3D position of this section's center on the torus axis
+    """
+    v = np.asarray(vector, dtype=float)
+    v /= np.linalg.norm(v)
+
+    # Outward radial direction in XY plane — rotates with the torus, never flips
+    radial = np.array([center[0], center[1], 0.0])
+    radial /= np.linalg.norm(radial)
+
+    z_axis = v
+    x_axis = radial - np.dot(radial, z_axis) * z_axis
+    x_axis /= np.linalg.norm(x_axis)
+    y_axis = np.cross(z_axis, x_axis)
+
+    return np.stack([x_axis, y_axis, z_axis], axis=1)
+    
 def rotate_poloidal_section(points, center, vector):
     """
     Rotate Nx3 array of points about 'center'
@@ -273,8 +291,10 @@ def rotate_poloidal_section(points, center, vector):
     points = np.asarray(points, dtype=float)
     center = np.asarray(center, dtype=float)
 
-    rval = rotation_matrix_from_z_to_vector(vector)
+    # rval = rotation_matrix_from_z_to_vector(vector)
+    rval = rotation_matrix_from_vector_no_twist(vector, center)
 
     translated = points
     rotated = rval @ translated
     return rotated + center[:, None]
+

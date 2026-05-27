@@ -11,7 +11,7 @@ from geometry.geometry_operations import nurbs_curve_periodic, \
 from geometry.geometry_operations import nurbs_curve
 import numpy as np
 
-def build_sketch_sector(theta, radius, degree, weights):
+def build_sketch_sector(theta, radius, degree, weights, num_points=100):
     """Build the sketch of a sector based on the geometry parameters.
     Args:   
     theta: list of angles in degrees    
@@ -36,13 +36,14 @@ def build_sketch_sector(theta, radius, degree, weights):
         degree,
         knot,
         u_start,
-        u_end]
+        u_end],
+        num_points
     )
     x, y = zip(*curve_points)
     ctrl_x, ctrl_y = zip(*ctrl_pts)
     return x, y, ctrl_x, ctrl_y
 
-def build_sketch_sector_toroidal(theta, phi, radius, degree, weights):
+def build_sketch_sector_toroidal(theta, phi, radius, degree, weights, num_points=100):
     """Build the sketch of a toroidal sector based on the geometry parameters.
     Args:   
     theta: list of angles in degrees for the poloidal direction    
@@ -68,7 +69,7 @@ def build_sketch_sector_toroidal(theta, phi, radius, degree, weights):
                                 degree,
                                 knot,
                                 u_start,
-                                u_end])
+                                u_end], num_points)
     return list(zip(*curve_points)),  list(zip(*ctrl_pts))
 
 def get_toroidal_coordinates_tangent(section_limits, points_3d):
@@ -116,7 +117,20 @@ def get_toroidal_coordinates_tangent(section_limits, points_3d):
 
     return coords, tangents
 
-def guide_vane(startpoint, endpoint, startvector, endvector, start_w, end_w):
+def is_inside_torus_axis(P0, startcenter):
+    """
+    Returns True if P0 is on the inboard side (closer to torus axis than startcenter).
+    All distances measured in XY plane only.
+    """
+    R = np.sqrt(startcenter[0]**2 + startcenter[1]**2)        # major radius
+    r = np.sqrt(P0[0]**2 + P0[1]**2)                          # P0's radial distance
+    inside = r < R
+    thickness = 0.25 if inside else 0.5
+    #t = np.clip(abs(r - R) / 0.35, 0.0, 1.0)
+    #thickness = 0.25 * np.clip(t * 2, 1, 2)
+    return thickness
+
+def guide_vane(startpoint, endpoint, startvector, endvector, startcenter, endcenter):
     """
     Constructs spline between start and end point with 2 poins in between
     """
@@ -126,15 +140,18 @@ def guide_vane(startpoint, endpoint, startvector, endvector, start_w, end_w):
     T0 = np.array(startvector)
     T1 = np.array(endvector)
 
-    P1 = P0 + start_w * T0
-    P2 = P3 + end_w * T1   # scaling vector only
+    start_w = is_inside_torus_axis(P0, startcenter)
+    end_w = is_inside_torus_axis(P3, endcenter)
+
+    P1 = P0 + start_w * T0 
+    P2 = P3 - end_w * T1  # scaling vector only
 
     ctrl_pts = [P0, P1, P2, P3]
 
     spline_3d = nurbs_curve(ctrl_pts, [1.0]*4, 3)
     return spline_3d
 
-def build_guide_vane(section_1, section_2, tangent_1, tangent_2):
+def build_guide_vane(section_1, section_2, tangent_1, tangent_2, center_1, center_2):
     """
     Builds guide vane from 2 closed sections
     """
@@ -145,6 +162,6 @@ def build_guide_vane(section_1, section_2, tangent_1, tangent_2):
         guide_vanes.append(guide_vane([section_1[0][j], section_1[1][j],section_1[2][j]],
                                       [section_2[0][j], section_2[1][j],section_2[2][j]],
                                       u_unit, v_unit,
-                                      0.5, -0.5))
+                                      center_1, center_2))
         
     return guide_vanes
