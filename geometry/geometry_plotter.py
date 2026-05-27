@@ -176,8 +176,11 @@ def plot_geometry(points_2d, ctrl_2d,
     label = rf'''
     $\epsilon_{{\max}}: {gp.BEST_ELONGATION:.4f}$
     $A: {gp.BEST_AR:.4f}$
-    $\bar{{\delta}}: {gp.BEST_TRIANGULARITY:.4f}$'''
-    ax4.text(0.45, 0.5,
+    $\bar{{\delta}}: {gp.BEST_TRIANGULARITY:.4f}$
+    $N: {round(gp.N[0], 4)}$
+    $B: {round(gp.A[0], 4)}$
+    $k: {round(gp.k[0], 4)}$'''
+    ax4.text(0.45, 0.3,
     label,
     ha='left',
     va='center',

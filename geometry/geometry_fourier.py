@@ -159,11 +159,12 @@ def delinearize_data(x0):
         sections = np.array(np.linspace(start=0.0, stop = 1.0 - (1 / cfg.NUM_TG), num=cfg.NUM_TG), dtype=np.float64)
         N = x0[idx : idx + 1]
         idx += 1
-
+        gp.N = N
         A = x0[idx : idx + 1]
         idx += 1
-
+        gp.A = A
         k = x0[idx : idx + 1]
+        gp.k = k
         idx += 1
         toroidal_sections = {
         "N_t": N_t,
