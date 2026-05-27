@@ -40,8 +40,8 @@ def callback(*args):
           f"xk norm = {np.linalg.norm(xk):.4f}")
 
 if __name__ == "__main__":
-    if cfg.STUDY_NAME == "Spherical":
-        print("Running Spherical optimization...")
+    if cfg.STUDY_NAME == "Type1":
+        print("Running Type1 optimization...")
         x0, data_format = gf.linearize_data("./inputs/toroidal_section.json")
         gp.FORMAT = data_format
         toroidal_sections, poloidal_sections = gf.delinearize_data(x0)

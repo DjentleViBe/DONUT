@@ -5,7 +5,7 @@ that can be used across the project."""
 # optimsation parameters
 MAX_ITER = 2
 TOLERANCE = 1e-6
-STUDY_NAME = "Spherical"
+STUDY_NAME = "Type1"
 # 'COBYLA'
 # 'Nelder-Mead'
 # 'L-BFGS-B'
