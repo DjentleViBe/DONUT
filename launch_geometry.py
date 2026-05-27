@@ -59,9 +59,12 @@ def geometry_preprocess(toroidal_sections, poloidal_sections):
     toroidal_coordinates, toroidal_tangents = get_toroidal_coordinates_tangent(
                                                         toroidal_sections['sections'],
                                                         [x, y, z])
-    N = toroidal_sections['N']
-    A = toroidal_sections['A']
-    k = toroidal_sections['k']
+    if cfg.STUDY_NAME == "Type2":
+        N = toroidal_sections['N']
+        A = toroidal_sections['A']
+        k = toroidal_sections['k']
+    else:
+        N, A, k = 0, 0, 0
     for i, poloidal_file in enumerate(poloidal_sections):
         x_p, y_p, ctrl_xp, ctrl_yp = build_sketch_sector(poloidal_file['psi'],
                                                 poloidal_file['radius'],
