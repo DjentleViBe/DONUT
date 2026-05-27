@@ -1,7 +1,7 @@
 import numpy as np
 import json
 import config as cfg
-from geometry.geometry_reader import get_geometry_parameters_from_toroidal_file
+from geometry.geometry_reader import get_geometry_parameters_from_toroidal_file, get_geometry_parameters_from_twist_file
 from geometry.geometry_constraints import f_to_u, u_to_f
 from helper.fourier_helper import fourier_encode, fourier_decode
 import geometry.geometry_process as gp
@@ -19,17 +19,22 @@ def linearize_data(toroidal_file):
     theta0 = np.deg2rad(90.0)
     theta_delta = np.deg2rad(45.0)
     toroidal_prop = get_geometry_parameters_from_toroidal_file(toroidal_file)
+    twist_prop = get_geometry_parameters_from_twist_file("inputs/twist_section.json")
     format.append(toroidal_prop.get("N_t"))
     phi = np.radians(np.array(toroidal_prop.get("phi")))
     theta = ((np.array(toroidal_prop.get("theta")) * np.pi / 180.0) - theta0) / theta_delta
     radius = np.array(toroidal_prop.get("radius"), dtype=np.float64)
     weights = np.array(toroidal_prop.get("weights"), dtype=np.float64)
     phi_to_u = f_to_u(phi)
+
     if cfg.STUDY_NAME == "Type1":
         sections = np.array(toroidal_prop.get("sections"), dtype=np.float64)
         combined = np.concatenate([phi_to_u, theta, radius, weights, sections])
     elif cfg.STUDY_NAME == "Type2":
-        combined = np.concatenate([phi_to_u, theta, radius, weights])
+        N = np.array([twist_prop.get("N")], dtype=np.float64)
+        A = np.array([twist_prop.get("A")], dtype=np.float64)
+        k = np.array([twist_prop.get("k")], dtype=np.float64)
+        combined = np.concatenate([phi_to_u, theta, radius, weights, N, A, k])
     
     toroidal_array.append(combined)
     # loop through the poloidal files
@@ -136,16 +141,12 @@ def delinearize_data(x0):
     weights = x0[idx : idx + N_t]
     idx += N_t
 
-    if cfg.STUDY_NAME == "Type1":
-        sections = x0[idx : idx + N_t]
-    elif cfg.STUDY_NAME == "Type2":
-        sections = np.array(np.linspace(start=0.0, stop = 1.0 - (1 / cfg.NUM_TG), num=cfg.NUM_TG), dtype=np.float64)
-    
-    idx += N_t
-
     phi = np.degrees(u_to_f(phi_to_u, 0))
     theta = np.degrees(theta0 + theta_to_x * theta_delta)  # direct decoding for theta
-    toroidal_sections = {
+    
+    if cfg.STUDY_NAME == "Type1":
+        sections = x0[idx : idx + N_t]
+        toroidal_sections = {
         "N_t": N_t,
         "phi": phi,
         "theta": theta,
@@ -153,5 +154,28 @@ def delinearize_data(x0):
         "weights": weights,
         "degree": 3,
         "sections": sections
-    }
+        }
+    elif cfg.STUDY_NAME == "Type2":
+        sections = np.array(np.linspace(start=0.0, stop = 1.0 - (1 / cfg.NUM_TG), num=cfg.NUM_TG), dtype=np.float64)
+        N = x0[idx : idx + 1]
+        idx += 1
+
+        A = x0[idx : idx + 1]
+        idx += 1
+
+        k = x0[idx : idx + 1]
+        idx += 1
+        toroidal_sections = {
+        "N_t": N_t,
+        "phi": phi,
+        "theta": theta,
+        "radius": radius,
+        "weights": weights,
+        "degree": 3,
+        "sections": sections,
+        "N" : N,
+        "A" : A,
+        "k" : k
+        }
+
     return toroidal_sections, poloidal_sections

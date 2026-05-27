@@ -265,9 +265,11 @@ def rotation_matrix_from_z_to_vector(target_vector):
 
     return rval
 
-def rotation_matrix_from_vector_no_twist(vector, center):
+def rotation_matrix_from_vector_no_twist(vector, center, twist = 0):
     """
-    center: the 3D position of this section's center on the torus axis
+    vector : tangent direction
+    center : section center
+    twist  : twist angle in radians
     """
     v = np.asarray(vector, dtype=float)
     v /= np.linalg.norm(v)
@@ -281,9 +283,14 @@ def rotation_matrix_from_vector_no_twist(vector, center):
     x_axis /= np.linalg.norm(x_axis)
     y_axis = np.cross(z_axis, x_axis)
 
-    return np.stack([x_axis, y_axis, z_axis], axis=1)
+    c = np.cos(twist)
+    s = np.sin(twist)
+    x_twisted = c * x_axis + s * y_axis
+    y_twisted = -s * x_axis + c * y_axis
+
+    return np.stack([x_twisted, y_twisted, z_axis], axis=1)
     
-def rotate_poloidal_section(points, center, vector):
+def rotate_poloidal_section(points, center, vector, twist = 0):
     """
     Rotate Nx3 array of points about 'center'
     so that (0,0,1) aligns with target_vector.
@@ -292,7 +299,7 @@ def rotate_poloidal_section(points, center, vector):
     center = np.asarray(center, dtype=float)
 
     # rval = rotation_matrix_from_z_to_vector(vector)
-    rval = rotation_matrix_from_vector_no_twist(vector, center)
+    rval = rotation_matrix_from_vector_no_twist(vector, center, twist)
 
     translated = points
     rotated = rval @ translated

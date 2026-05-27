@@ -59,6 +59,9 @@ def geometry_preprocess(toroidal_sections, poloidal_sections, mode):
     toroidal_coordinates, toroidal_tangents = get_toroidal_coordinates_tangent(
                                                         toroidal_sections['sections'],
                                                         [x, y, z])
+    N = toroidal_sections['N']
+    A = toroidal_sections['A']
+    k = toroidal_sections['k']
     for i, poloidal_file in enumerate(poloidal_sections):
         if mode == 0:
             poloid_file = get_geometry_parameters_from_poloidal_file("./inputs/" +
@@ -79,9 +82,12 @@ def geometry_preprocess(toroidal_sections, poloidal_sections, mode):
         ctrl_x_collections.append(ctrl_xp)
         ctrl_y_collections.append(ctrl_yp)
         # moved_points = move_poloidal_section_origin([x, y], toroidal_coordinates[i])
+        phi = i * (2 * np.pi / cfg.NUM_TG)
+        twist = k * phi + A * np.sin(N * phi)
         moved_points = rotate_poloidal_section([x_p, y_p, [0.0]*len(x_p)],
                                                toroidal_coordinates[i],
-                                               toroidal_tangents[i])
+                                               toroidal_tangents[i],
+                                               twist)
         x_moved_collections.append(moved_points[0])
         y_moved_collections.append(moved_points[1])
         z_moved_collections.append(moved_points[2])
