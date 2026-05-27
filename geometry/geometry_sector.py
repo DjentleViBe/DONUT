@@ -125,9 +125,9 @@ def is_inside_torus_axis(P0, startcenter):
     R = np.sqrt(startcenter[0]**2 + startcenter[1]**2)        # major radius
     r = np.sqrt(P0[0]**2 + P0[1]**2)                          # P0's radial distance
     inside = r < R
-    thickness = 0.25 if inside else 0.5
-    #t = np.clip(abs(r - R) / 0.35, 0.0, 1.0)
-    #thickness = 0.25 * np.clip(t * 2, 1, 2)
+    #thickness = 0.25 if inside else 0.25
+    t = np.clip(abs(r - R) / 0.15, 0.0, 1.0)
+    thickness = 0.25 * np.clip(t * 2, 1, 2)
     return thickness
 
 def guide_vane(startpoint, endpoint, startvector, endvector, startcenter, endcenter):
