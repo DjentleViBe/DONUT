@@ -100,7 +100,7 @@ def delinearize_data(x0):
                 "degree": 3
             })
     elif cfg.STUDY_NAME == "Type2":
-        N_t = cfg.NUM_TG
+        N_t = cfg.NUM_T
         for i in range(N_t):
             idx = 0
             N_s = format_list[1]
@@ -156,7 +156,7 @@ def delinearize_data(x0):
         "sections": sections
         }
     elif cfg.STUDY_NAME == "Type2":
-        sections = np.array(np.linspace(start=0.0, stop = 1.0 - (1 / cfg.NUM_TG), num=cfg.NUM_TG), dtype=np.float64)
+        sections = np.array(np.linspace(start=0.0, stop = 1.0 - (1 / cfg.NUM_T), num=cfg.NUM_T), dtype=np.float64)
         N = x0[idx : idx + 1]
         idx += 1
         gp.N = N

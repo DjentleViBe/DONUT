@@ -28,8 +28,7 @@ AR_WEIGHT = 1000.0
 FDRS = 5e-2
 # geometry parameter
 NUM_P = 30
-NUM_T = 20
-NUM_TG = 4
+NUM_T = 100
 NUM_GV = 100
 # plotting parameters
 color = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728",

@@ -76,7 +76,7 @@ def geometry_preprocess(toroidal_sections, poloidal_sections):
         ctrl_x_collections.append(ctrl_xp)
         ctrl_y_collections.append(ctrl_yp)
         # moved_points = move_poloidal_section_origin([x, y], toroidal_coordinates[i])
-        phi = i * (2 * np.pi / cfg.NUM_TG)
+        phi = i * (2 * np.pi / cfg.NUM_T)
         twist = k * phi + A * np.sin(N * phi)
         moved_points = rotate_poloidal_section([x_p, y_p, [0.0]*len(x_p)],
                                                toroidal_coordinates[i],
@@ -99,37 +99,62 @@ def geometry_elongation(poloidal_sections, x_moved_collections,
     guide_vane_collections = []
     file_list = []
     elongation_list = []
-    nval = len(poloidal_sections)
-    for i in range(nval):
-        next_i = (i + 1) % nval
-        guide_vane_collections.append(
-            build_guide_vane(
-                [x_moved_collections[i],
-                y_moved_collections[i],
-                z_moved_collections[i]],
+    if cfg.STUDY_NAME == "Type1":
+        nval = len(poloidal_sections)
+        for i in range(nval):
+            next_i = (i + 1) % nval
+            guide_vane_collections.append(
+                build_guide_vane(
+                    [x_moved_collections[i],
+                    y_moved_collections[i],
+                    z_moved_collections[i]],
 
-                [x_moved_collections[next_i],
-                y_moved_collections[next_i],
-                z_moved_collections[next_i]],
+                    [x_moved_collections[next_i],
+                    y_moved_collections[next_i],
+                    z_moved_collections[next_i]],
 
-                toroidal_tangents[i],
-                toroidal_tangents[next_i],
+                    toroidal_tangents[i],
+                    toroidal_tangents[next_i],
 
-                toroidal_coordinates[i],
-                toroidal_coordinates[next_i],
-                cfg.NUM_GV
+                    toroidal_coordinates[i],
+                    toroidal_coordinates[next_i],
+                    cfg.NUM_GV
+                )
             )
-        )
-        if plot:
-            vertices, faces = loft_revolved(np.asarray(guide_vane_collections[i]))
-            write_stl(vertices, faces,
-             f"./outputs/{cfg.STUDY_NAME}_{cfg.METHOD}_revolved_surface+{i}.stl")
-            file_list.append(f"./outputs/{cfg.STUDY_NAME}_{cfg.METHOD}_revolved_surface+{i}.stl")
-        vals = [compute_elongation_fit(np.asarray(guide_vane_collections[i])[:, j, :])
-                for j in range(cfg.NUM_GV)]
-        # epsilon_max = logsumexp(cfg.K_SMOOTH * np.array(vals)) / cfg.K_SMOOTH
-        epsilon_max = max(vals)
-        elongation_list.append(epsilon_max)
+            if plot:
+                vertices, faces = loft_revolved(np.asarray(guide_vane_collections[i]))
+                write_stl(vertices, faces,
+                f"./outputs/{cfg.STUDY_NAME}_{cfg.METHOD}_revolved_surface+{i}.stl")
+                file_list.append(f"./outputs/{cfg.STUDY_NAME}_{cfg.METHOD}_revolved_surface+{i}.stl")
+            vals = [compute_elongation_fit(np.asarray(guide_vane_collections[i])[:, j, :])
+                    for j in range(cfg.NUM_GV)]
+            # epsilon_max = logsumexp(cfg.K_SMOOTH * np.array(vals)) / cfg.K_SMOOTH
+            epsilon_max = max(vals)
+            elongation_list.append(epsilon_max)
+    elif cfg.STUDY_NAME == "Type2":
+        nval = cfg.NUM_T
+        for i in range(nval):
+            next_i = (i + 1) % nval
+            current_section = np.stack([x_moved_collections[i],
+                                        y_moved_collections[i],
+                                        z_moved_collections[i]], axis=-1)
+            next_section = np.stack([x_moved_collections[next_i],
+                                     y_moved_collections[next_i],
+                                     z_moved_collections[next_i]], axis=-1)
+
+            section_pair = np.stack([current_section, next_section], axis=1)                      # (2, NUM_P, 3)
+
+            guide_vane_collections.append(section_pair)
+            if plot:
+                vertices, faces = loft_revolved(np.asarray(guide_vane_collections[i]))
+                write_stl(vertices, faces,
+                f"./outputs/{cfg.STUDY_NAME}_{cfg.METHOD}_revolved_surface+{i}.stl")
+                file_list.append(f"./outputs/{cfg.STUDY_NAME}_{cfg.METHOD}_revolved_surface+{i}.stl")
+            vals = [compute_elongation_fit(np.asarray(guide_vane_collections[i])[:, j, :])
+                    for j in range(2)]
+            # epsilon_max = logsumexp(cfg.K_SMOOTH * np.array(vals)) / cfg.K_SMOOTH
+            epsilon_max = max(vals)
+            elongation_list.append(epsilon_max)
     return elongation_list, file_list, guide_vane_collections
 
 def geometry_construct(toroidal_sections, poloidal_sections, mode, init=False, plot=False, filename=None):
