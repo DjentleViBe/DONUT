@@ -130,7 +130,7 @@ def is_inside_torus_axis(P0, startcenter):
     thickness = 0.25 * np.clip(t * 2, 1, 2)
     return thickness
 
-def guide_vane(startpoint, endpoint, startvector, endvector, startcenter, endcenter):
+def guide_vane(startpoint, endpoint, startvector, endvector, startcenter, endcenter, num_points):
     """
     Constructs spline between start and end point with 2 poins in between
     """
@@ -148,10 +148,10 @@ def guide_vane(startpoint, endpoint, startvector, endvector, startcenter, endcen
 
     ctrl_pts = [P0, P1, P2, P3]
 
-    spline_3d = nurbs_curve(ctrl_pts, [1.0]*4, 3)
+    spline_3d = nurbs_curve(ctrl_pts, [1.0]*4, 3, num_points = num_points)
     return spline_3d
 
-def build_guide_vane(section_1, section_2, tangent_1, tangent_2, center_1, center_2):
+def build_guide_vane(section_1, section_2, tangent_1, tangent_2, center_1, center_2, num_points):
     """
     Builds guide vane from 2 closed sections
     """
@@ -162,6 +162,7 @@ def build_guide_vane(section_1, section_2, tangent_1, tangent_2, center_1, cente
         guide_vanes.append(guide_vane([section_1[0][j], section_1[1][j],section_1[2][j]],
                                       [section_2[0][j], section_2[1][j],section_2[2][j]],
                                       u_unit, v_unit,
-                                      center_1, center_2))
+                                      center_1, center_2,
+                                      num_points))
         
     return guide_vanes

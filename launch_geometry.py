@@ -117,6 +117,7 @@ def geometry_elongation(poloidal_sections, x_moved_collections,
 
                 toroidal_coordinates[i],
                 toroidal_coordinates[next_i],
+                cfg.NUM_GV
             )
         )
         if plot:
@@ -125,7 +126,7 @@ def geometry_elongation(poloidal_sections, x_moved_collections,
              f"./outputs/{cfg.STUDY_NAME}_{cfg.METHOD}_revolved_surface+{i}.stl")
             file_list.append(f"./outputs/{cfg.STUDY_NAME}_{cfg.METHOD}_revolved_surface+{i}.stl")
         vals = [compute_elongation_fit(np.asarray(guide_vane_collections[i])[:, j, :])
-                for j in range(100)]
+                for j in range(cfg.NUM_GV)]
         # epsilon_max = logsumexp(cfg.K_SMOOTH * np.array(vals)) / cfg.K_SMOOTH
         epsilon_max = max(vals)
         elongation_list.append(epsilon_max)
