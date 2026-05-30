@@ -122,11 +122,7 @@ def compute_average_triangularity(
 
         # Surface centroid approximation of magnetic axis
         r_zero = np.mean(rval)
-
-        r_max = np.max(rval)
-        r_min = np.min(rval)
-
-        minor_radius = 0.5 * (r_max - r_min)
+        minor_radius = 0.5 * (np.max(rval) - np.min(rval))
 
         if minor_radius <= 0:
             raise ValueError("Degenerate cross-section detected.")
@@ -141,10 +137,7 @@ def compute_average_triangularity(
 
         # Optional:
         # use bottom triangularity too
-        idx_min_z = np.argmin(zval)
-        r_zmin = rval[idx_min_z]
-
-        delta_bottom = (r_zero - r_zmin) / minor_radius
+        delta_bottom = (r_zero - rval[np.argmin(zval)]) / minor_radius
 
         # Average upper/lower triangularity
         delta = 0.5 * (delta_top + delta_bottom)
