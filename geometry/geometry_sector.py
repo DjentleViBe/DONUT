@@ -4,6 +4,9 @@ This module contains functions to build the sketch of a sector based on the geom
 read from the input files. It uses the geometry operations to compute the NURBS curve points
 and control points, and prepares the data for plotting.
 """
+from classes_geometry import ToroidalGeometry, \
+                            SketchGeometryPoloidal, \
+                            SketchGeometryToroidal
 from geometry.geometry_operations import nurbs_curve_periodic, \
                                 get_cartesian_coordinates_2d, \
                                 get_cartesian_coordinates_3d, \
@@ -41,7 +44,8 @@ def build_sketch_sector(theta, radius, degree, weights, num_points=100):
     )
     x, y = zip(*curve_points)
     ctrl_x, ctrl_y = zip(*ctrl_pts)
-    return x, y, ctrl_x, ctrl_y
+    curvegeom = SketchGeometryPoloidal(x, y, ctrl_x, ctrl_y)
+    return curvegeom
 
 def build_sketch_sector_toroidal(theta, phi, radius, degree, weights, num_points=100):
     """Build the sketch of a toroidal sector based on the geometry parameters.
@@ -70,7 +74,8 @@ def build_sketch_sector_toroidal(theta, phi, radius, degree, weights, num_points
                                 knot,
                                 u_start,
                                 u_end], num_points)
-    return list(zip(*curve_points)),  list(zip(*ctrl_pts))
+    curvegeom = SketchGeometryToroidal(list(zip(*curve_points)),  list(zip(*ctrl_pts)))
+    return curvegeom
 
 def get_toroidal_coordinates_tangent(section_limits, points_3d):
     """
@@ -114,8 +119,8 @@ def get_toroidal_coordinates_tangent(section_limits, points_3d):
             dz = z[idx] - z[idx - 1]
 
         tangents.append((dx, dy, dz))
-
-    return coords, tangents
+    toroidal_geom = ToroidalGeometry(coords, tangents)
+    return toroidal_geom
 
 def is_inside_torus_axis(P0, startcenter):
     """

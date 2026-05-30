@@ -15,7 +15,7 @@ def compute_elongation(cross_section):
     # The smallest eigenvector = normal to the plane
     # The other two = local axes within the plane
     cov = pts.T @ pts
-    eigenvalues, eigenvectors = np.linalg.eigh(cov)
+    _, eigenvectors = np.linalg.eigh(cov)
 
     # eigh returns ascending order
     # eigenvectors[:, 0] = normal (smallest variance = out of plane)
@@ -40,23 +40,26 @@ def compute_cross_section_area_perimeter(cross_section):
 
     # perimeter
     diffs = np.diff(pts, axis=0, append=pts[:1])
-    P = np.sum(np.linalg.norm(diffs, axis=1))
+    pval = np.sum(np.linalg.norm(diffs, axis=1))
 
     # area
     centroid = pts.mean(axis=0)
     vecs = pts - centroid
     crosses = np.cross(vecs, np.roll(vecs, -1, axis=0))
-    A = 0.5 * np.linalg.norm(crosses.sum(axis=0))
-    return A, P
+    aval = 0.5 * np.linalg.norm(crosses.sum(axis=0))
+    return aval, pval
 
 def compute_elongation_fit(cross_section):
-    A, P = compute_cross_section_area_perimeter(cross_section)
+    """
+    Computes elongation value from cross sections
+    """
+    aval, pval = compute_cross_section_area_perimeter(cross_section)
 
     def residual(kappa):
-        a = np.sqrt(A * kappa / np.pi)
+        a = np.sqrt(aval * kappa / np.pi)
         e2 = 1.0 - 1.0 / (kappa**2)
-        Pell = 4.0 * a * special.ellipe(e2)
-        return Pell - P
+        pell = 4.0 * a * special.ellipe(e2)
+        return pell - pval
 
     # circle is minimum perimeter
     r1 = residual(1.0)
@@ -114,34 +117,34 @@ def compute_average_triangularity(
 
     for idx in idx_sections:
 
-        R = np.asarray(x_collections[idx])
-        Z = np.asarray(y_collections[idx])
+        rval = np.asarray(x_collections[idx])
+        zval = np.asarray(y_collections[idx])
 
         # Surface centroid approximation of magnetic axis
-        R0 = np.mean(R)
+        r_zero = np.mean(rval)
 
-        R_max = np.max(R)
-        R_min = np.min(R)
+        r_max = np.max(rval)
+        r_min = np.min(rval)
 
-        minor_radius = 0.5 * (R_max - R_min)
+        minor_radius = 0.5 * (r_max - r_min)
 
         if minor_radius <= 0:
             raise ValueError("Degenerate cross-section detected.")
 
         # Location of maximum Z
-        idx_max_Z = np.argmax(Z)
+        idx_max_z = np.argmax(zval)
 
-        R_Zmax = R[idx_max_Z]
+        r_zmax = rval[idx_max_z]
 
         # Top triangularity
-        delta_top = (R0 - R_Zmax) / minor_radius
+        delta_top = (r_zero - r_zmax) / minor_radius
 
         # Optional:
         # use bottom triangularity too
-        idx_min_Z = np.argmin(Z)
-        R_Zmin = R[idx_min_Z]
+        idx_min_z = np.argmin(zval)
+        r_zmin = rval[idx_min_z]
 
-        delta_bottom = (R0 - R_Zmin) / minor_radius
+        delta_bottom = (r_zero - r_zmin) / minor_radius
 
         # Average upper/lower triangularity
         delta = 0.5 * (delta_top + delta_bottom)
@@ -158,8 +161,8 @@ def compute_average_aspect_ratio(x_collections, y_collections, z_collections=Non
     z = np.concatenate(np.asarray(z_collections))
     points = np.vstack([x, y, z]).T
 
-    R = np.sqrt(points[:, 0]**2 + points[:, 1]**2)
-    R0 = np.mean(R)
-    a = np.std(R)
+    rval = np.sqrt(points[:, 0]**2 + points[:, 1]**2)
+    r_zero = np.mean(rval)
+    a = np.std(rval)
 
-    return R0 / a
+    return r_zero / a
