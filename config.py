@@ -27,8 +27,9 @@ AR_WEIGHT = 1000.0
 # optimization parameters
 FDRS = 5e-2
 # geometry parameter
-NUM_P = 100
+NUM_P = 30
 NUM_T = 100
+NUM_GV = 100
 # plotting parameters
 color = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728",
           "#9467bd", "#8c564b", "#e377c2", "#7f7f7f",

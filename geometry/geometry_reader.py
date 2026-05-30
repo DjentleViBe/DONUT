@@ -58,3 +58,18 @@ def get_geometry_parameters_from_toroidal_file(toroidal_file):
                 "radius": radius, "weights": weights,
                 "degree": degree, "sections": sections}
 
+def get_geometry_parameters_from_twist_file(twist_file):
+    """Read the twist section file to get the geometry parameters for building the sketch.
+    Args:
+        twist_file (str): The path to the twist section file.
+    Returns:
+        dict: A dictionary containing the geometry parameters.
+    """
+    with open(twist_file, "r", encoding="utf-8") as f:
+        data = json.load(f)
+        N = data.get("N")
+        A = data.get("A")
+        k = data.get("k")
+        
+        # aram_num_sector_toroidal(nval, theta, phi, radius)
+        return {"N": N, "A": A, "k": k}

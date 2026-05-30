@@ -4,6 +4,9 @@ This module contains functions to build the sketch of a sector based on the geom
 read from the input files. It uses the geometry operations to compute the NURBS curve points
 and control points, and prepares the data for plotting.
 """
+from classes_geometry import ToroidalGeometry, \
+                            SketchGeometryPoloidal, \
+                            SketchGeometryToroidal
 from geometry.geometry_operations import nurbs_curve_periodic, \
                                 get_cartesian_coordinates_2d, \
                                 get_cartesian_coordinates_3d, \
@@ -41,7 +44,8 @@ def build_sketch_sector(theta, radius, degree, weights, num_points=100):
     )
     x, y = zip(*curve_points)
     ctrl_x, ctrl_y = zip(*ctrl_pts)
-    return x, y, ctrl_x, ctrl_y
+    curvegeom = SketchGeometryPoloidal(x, y, ctrl_x, ctrl_y)
+    return curvegeom
 
 def build_sketch_sector_toroidal(theta, phi, radius, degree, weights, num_points=100):
     """Build the sketch of a toroidal sector based on the geometry parameters.
@@ -70,7 +74,8 @@ def build_sketch_sector_toroidal(theta, phi, radius, degree, weights, num_points
                                 knot,
                                 u_start,
                                 u_end], num_points)
-    return list(zip(*curve_points)),  list(zip(*ctrl_pts))
+    curvegeom = SketchGeometryToroidal(list(zip(*curve_points)),  list(zip(*ctrl_pts)))
+    return curvegeom
 
 def get_toroidal_coordinates_tangent(section_limits, points_3d):
     """
@@ -114,8 +119,8 @@ def get_toroidal_coordinates_tangent(section_limits, points_3d):
             dz = z[idx] - z[idx - 1]
 
         tangents.append((dx, dy, dz))
-
-    return coords, tangents
+    toroidal_geom = ToroidalGeometry(coords, tangents)
+    return toroidal_geom
 
 def is_inside_torus_axis(P0, startcenter):
     """
@@ -125,12 +130,12 @@ def is_inside_torus_axis(P0, startcenter):
     R = np.sqrt(startcenter[0]**2 + startcenter[1]**2)        # major radius
     r = np.sqrt(P0[0]**2 + P0[1]**2)                          # P0's radial distance
     inside = r < R
-    thickness = 0.25 if inside else 0.5
-    #t = np.clip(abs(r - R) / 0.35, 0.0, 1.0)
-    #thickness = 0.25 * np.clip(t * 2, 1, 2)
+    #thickness = 0.25 if inside else 0.25
+    t = np.clip(abs(r - R) / 0.15, 0.0, 1.0)
+    thickness = 0.25 * np.clip(t * 2, 1, 2)
     return thickness
 
-def guide_vane(startpoint, endpoint, startvector, endvector, startcenter, endcenter):
+def guide_vane(startpoint, endpoint, startvector, endvector, startcenter, endcenter, num_points):
     """
     Constructs spline between start and end point with 2 poins in between
     """
@@ -148,10 +153,10 @@ def guide_vane(startpoint, endpoint, startvector, endvector, startcenter, endcen
 
     ctrl_pts = [P0, P1, P2, P3]
 
-    spline_3d = nurbs_curve(ctrl_pts, [1.0]*4, 3)
+    spline_3d = nurbs_curve(ctrl_pts, [1.0]*4, 3, num_points = num_points)
     return spline_3d
 
-def build_guide_vane(section_1, section_2, tangent_1, tangent_2, center_1, center_2):
+def build_guide_vane(section_1, section_2, tangent_1, tangent_2, center_1, center_2, num_points):
     """
     Builds guide vane from 2 closed sections
     """
@@ -162,6 +167,7 @@ def build_guide_vane(section_1, section_2, tangent_1, tangent_2, center_1, cente
         guide_vanes.append(guide_vane([section_1[0][j], section_1[1][j],section_1[2][j]],
                                       [section_2[0][j], section_2[1][j],section_2[2][j]],
                                       u_unit, v_unit,
-                                      center_1, center_2))
+                                      center_1, center_2,
+                                      num_points))
         
     return guide_vanes

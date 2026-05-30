@@ -7,11 +7,9 @@ The module also computes the elongation of the guide vanes
 and plots the geometry for verification.
 """
 import numpy as np
-from scipy.special import logsumexp
 import config as cfg
 import geometry.geometry_process as gp
 from geometry.geometry_reader import get_poloidal_sections_from_toroidal_file, \
-                            get_geometry_parameters_from_poloidal_file,\
                             get_geometry_parameters_from_toroidal_file
 from geometry.geometry_sector import build_sketch_sector, build_sketch_sector_toroidal, \
                     get_toroidal_coordinates_tangent, build_guide_vane
@@ -20,6 +18,10 @@ from geometry.geometry_operations import rotate_poloidal_section
 from geometry.geometry_build import loft_revolved, write_stl, merge_stls
 from objectives import compute_elongation_fit, compute_average_triangularity, \
                         compute_average_aspect_ratio
+from classes_geometry import GeometryData, \
+                            PoloidalGeometry, \
+                            ToroidalGeometry
+# from scipy.special import logsumexp
 
 def softmax_max(x, beta=10.0):
     """Compute a smooth approximation of the maximum value in the 
@@ -36,102 +38,125 @@ def geometry_init():
     toroid_file = get_geometry_parameters_from_toroidal_file("./inputs/toroidal_section.json")
     return poloidal_sections, toroid_file
 
-def geometry_preprocess(toroidal_sections, poloidal_sections, mode):
+def geometry_preprocess(toroidal_sections, poloidal_sections):
     """
     Preprocess the geometry data by building the sketches of the toroidal and poloidal sections.
     This function prepares the data for further processing and optimization.
     """
-    x_collections = []
-    y_collections = []
-    x_moved_collections = []
-    y_moved_collections = []
-    z_moved_collections = []
-    ctrl_x_collections = []
-    ctrl_y_collections = []
-    curve, ctrl = build_sketch_sector_toroidal(toroidal_sections['theta'],
+    geom = GeometryData([], [], [], [], [], [], [])
+    curvegeom = build_sketch_sector_toroidal(toroidal_sections['theta'],
                                             toroidal_sections['phi'],
                                             toroidal_sections['radius'],
                                             toroidal_sections['degree'],
                                             toroidal_sections['weights'],
                                             cfg.NUM_T)
-    x, y, z = curve
-    ctrl_x, ctrl_y, ctrl_z = ctrl
-    toroidal_coordinates, toroidal_tangents = get_toroidal_coordinates_tangent(
-                                                        toroidal_sections['sections'],
-                                                        [x, y, z])
+    toroidal_geom = get_toroidal_coordinates_tangent(toroidal_sections['sections'],
+                                                    curvegeom.curve)
+    if cfg.STUDY_NAME == "Type2":
+        twist_params = (
+            toroidal_sections['N'],
+            toroidal_sections['A'],
+            toroidal_sections['k'])
+    else:
+        twist_params = (0.0, 0.0, 0.0)
     for i, poloidal_file in enumerate(poloidal_sections):
-        if mode == 0:
-            poloid_file = get_geometry_parameters_from_poloidal_file("./inputs/" +
-                                                    poloidal_file + ".json")
-            x_p, y_p, ctrl_xp, ctrl_yp = build_sketch_sector(poloid_file['theta'],
-                                                    poloid_file['radius'],
-                                                    poloid_file['degree'],
-                                                    poloid_file['weights'],
-                                                    cfg.NUM_P)
-        else:
-            x_p, y_p, ctrl_xp, ctrl_yp = build_sketch_sector(poloidal_file['psi'],
-                                                    poloidal_file['radius'],
-                                                    poloidal_file['degree'],
-                                                    poloidal_file['weights'],
-                                                    cfg.NUM_P)
-        x_collections.append(x_p)
-        y_collections.append(y_p)
-        ctrl_x_collections.append(ctrl_xp)
-        ctrl_y_collections.append(ctrl_yp)
-        # moved_points = move_poloidal_section_origin([x, y], toroidal_coordinates[i])
-        moved_points = rotate_poloidal_section([x_p, y_p, [0.0]*len(x_p)],
-                                               toroidal_coordinates[i],
-                                               toroidal_tangents[i])
-        x_moved_collections.append(moved_points[0])
-        y_moved_collections.append(moved_points[1])
-        z_moved_collections.append(moved_points[2])
-    return x_collections, y_collections, \
-        x_moved_collections ,y_moved_collections, z_moved_collections, \
-            ctrl_x_collections, ctrl_y_collections, \
-            toroidal_coordinates, toroidal_tangents, \
-            x, y, z, ctrl_x, ctrl_y, ctrl_z
+        curvegeompol = build_sketch_sector(poloidal_file['psi'],
+                                                poloidal_file['radius'],
+                                                poloidal_file['degree'],
+                                                poloidal_file['weights'],
+                                                cfg.NUM_P)
+        geom.x_collections.append(curvegeompol.x_p)
+        geom.y_collections.append(curvegeompol.y_p)
+        geom.ctrl_x_collections.append(curvegeompol.ctrl_xp)
+        geom.ctrl_y_collections.append(curvegeompol.ctrl_yp)
+        moved_points = rotate_poloidal_section([curvegeompol.x_p, curvegeompol.y_p,
+                                                [0.0]*len(curvegeompol.x_p)],
+                                               toroidal_geom.toroidal_coordinates[i],
+                                               toroidal_geom.toroidal_tangents[i],
+                                               twist = twist_params[2] * i *
+                                               (2 * np.pi / cfg.NUM_T) +
+                                               twist_params[1] * np.sin(twist_params[0]
+                                                * i * (2 * np.pi / cfg.NUM_T)))
+        geom.x_moved_collections.append(moved_points[0])
+        geom.y_moved_collections.append(moved_points[1])
+        geom.z_moved_collections.append(moved_points[2])
+    return geom.x_collections, geom.y_collections, \
+            geom.x_moved_collections ,geom.y_moved_collections, geom.z_moved_collections, \
+            geom.ctrl_x_collections, geom.ctrl_y_collections, \
+            toroidal_geom.toroidal_coordinates, toroidal_geom.toroidal_tangents, \
+            *curvegeom.curve, *curvegeom.ctrl
 
-def geometry_elongation(poloidal_sections, x_moved_collections,
-                        y_moved_collections, z_moved_collections,
-                        toroidal_tangents, toroidal_coordinates, 
+def geometry_elongation(poloidal_sections, moved_collections,
+                        toroidal_tangents, toroidal_coordinates,
                         plot=False):
     """Computes elongation from coordinates"""
     guide_vane_collections = []
     file_list = []
     elongation_list = []
-    nval = len(poloidal_sections)
-    for i in range(nval):
-        next_i = (i + 1) % nval
-        guide_vane_collections.append(
-            build_guide_vane(
-                [x_moved_collections[i],
-                y_moved_collections[i],
-                z_moved_collections[i]],
+    if cfg.STUDY_NAME == "Type1":
+        for i in range(len(poloidal_sections)):
+            next_i = (i + 1) % len(poloidal_sections)
+            guide_vane_collections.append(
+                build_guide_vane(
+                    [moved_collections[0][i],
+                    moved_collections[1][i],
+                    moved_collections[2][i]],
 
-                [x_moved_collections[next_i],
-                y_moved_collections[next_i],
-                z_moved_collections[next_i]],
+                    [moved_collections[0][next_i],
+                    moved_collections[1][next_i],
+                    moved_collections[2][next_i]],
 
-                toroidal_tangents[i],
-                toroidal_tangents[next_i],
+                    toroidal_tangents[i],
+                    toroidal_tangents[next_i],
 
-                toroidal_coordinates[i],
-                toroidal_coordinates[next_i],
+                    toroidal_coordinates[i],
+                    toroidal_coordinates[next_i],
+                    cfg.NUM_GV
+                )
             )
-        )
-        if plot:
-            vertices, faces = loft_revolved(np.asarray(guide_vane_collections[i]))
-            write_stl(vertices, faces,
-             f"./outputs/{cfg.STUDY_NAME}_{cfg.METHOD}_revolved_surface+{i}.stl")
-            file_list.append(f"./outputs/{cfg.STUDY_NAME}_{cfg.METHOD}_revolved_surface+{i}.stl")
-        vals = [compute_elongation_fit(np.asarray(guide_vane_collections[i])[:, j, :])
-                for j in range(100)]
-        # epsilon_max = logsumexp(cfg.K_SMOOTH * np.array(vals)) / cfg.K_SMOOTH
-        epsilon_max = max(vals)
-        elongation_list.append(epsilon_max)
+            if plot:
+                vertices, faces = loft_revolved(np.asarray(guide_vane_collections[i]))
+                write_stl(vertices, faces,
+                f"./outputs/{cfg.STUDY_NAME}_{cfg.METHOD}_revolved_surface+{i}.stl")
+                file_list.append(
+                    f"./outputs/{cfg.STUDY_NAME}_{cfg.METHOD}_revolved_surface+{i}.stl")
+            # epsilon_max = logsumexp(cfg.K_SMOOTH * np.array(vals)) / cfg.K_SMOOTH
+            elongation_list.append(
+                max(
+                    compute_elongation_fit(np.asarray(guide_vane_collections[i])[:, j, :])
+                    for j in range(cfg.NUM_GV)
+                    )
+                )
+    elif cfg.STUDY_NAME == "Type2":
+        for i in range(cfg.NUM_T):
+            next_i = (i + 1) % cfg.NUM_T
+            current_section = np.stack([moved_collections[0][i],
+                                        moved_collections[1][i],
+                                        moved_collections[2][i]], axis=-1)
+            next_section = np.stack([moved_collections[0][next_i],
+                                     moved_collections[1][next_i],
+                                     moved_collections[2][next_i]], axis=-1)
+
+            section_pair = np.stack([current_section, next_section], axis=1)
+
+            guide_vane_collections.append(section_pair)
+            if plot:
+                vertices, faces = loft_revolved(np.asarray(guide_vane_collections[i]))
+                write_stl(vertices, faces,
+                f"./outputs/{cfg.STUDY_NAME}_{cfg.METHOD}_revolved_surface+{i}.stl")
+                file_list.append(
+                    f"./outputs/{cfg.STUDY_NAME}_{cfg.METHOD}_revolved_surface+{i}.stl")
+            # epsilon_max = logsumexp(cfg.K_SMOOTH * np.array(vals)) / cfg.K_SMOOTH
+            elongation_list.append(
+                max(
+                    compute_elongation_fit(np.asarray(guide_vane_collections[i])[:, j, :])
+                    for j in range(2)
+                    )
+                )
     return elongation_list, file_list, guide_vane_collections
 
-def geometry_construct(toroidal_sections, poloidal_sections, mode, init=False, plot=False, filename=None):
+def geometry_construct(toroidal_sections, poloidal_sections,
+                       init=False, plot=False, filename=None):
     """
     Construct the geometry based on the provided toroidal and poloidal sections.
     Args:
@@ -140,40 +165,48 @@ def geometry_construct(toroidal_sections, poloidal_sections, mode, init=False, p
     mode: An integer indicating the mode of operation (0 for reading from files, 
             1 for using provided data).
     """
-    x_collections, y_collections, \
-        x_moved_collections ,y_moved_collections, z_moved_collections, \
-            ctrl_x_collections, ctrl_y_collections, \
-            toroidal_coordinates, toroidal_tangents, \
-                 x, y, z, ctrl_x, ctrl_y, ctrl_z = geometry_preprocess(toroidal_sections,
-                                                                       poloidal_sections,
-                                                                       mode)
+    geom = GeometryData([], [], [], [], [], [], [])
+    toroidgeom = ToroidalGeometry([],[])
+    poloidgeom = PoloidalGeometry([],[],[],[],[],[])
+    geom.x_collections, geom.y_collections, \
+        geom.x_moved_collections ,geom.y_moved_collections, geom.z_moved_collections, \
+            geom.ctrl_x_collections, geom.ctrl_y_collections, \
+            toroidgeom.toroidal_coordinates, toroidgeom.toroidal_tangents, \
+                 poloidgeom.x, poloidgeom.y, poloidgeom.z, \
+                    poloidgeom.ctrl_x, poloidgeom.ctrl_y, poloidgeom.ctrl_z\
+                          = geometry_preprocess(toroidal_sections,
+                                                poloidal_sections)
 
-    elongation_list, file_list, guide_vane_collections = geometry_elongation(poloidal_sections, \
-                                                                x_moved_collections,
-                                                                y_moved_collections,
-                                                                z_moved_collections, \
-                                                                toroidal_tangents, toroidal_coordinates,
+    elongation_list, file_list, guide_vane_collections = geometry_elongation(poloidal_sections,
+                                                                [geom.x_moved_collections,
+                                                                geom.y_moved_collections,
+                                                                geom.z_moved_collections],
+                                                                toroidgeom.toroidal_tangents,
+                                                                toroidgeom.toroidal_coordinates,
                                                                 plot=True)
     # gp.TRIAL_ELONGATION = np.percentile(elongation_list, 95)
-    CE = max(elongation_list)
-    CT = compute_average_triangularity(x_collections, y_collections)
-    AR = compute_average_aspect_ratio(x_moved_collections,
-                                      y_moved_collections,
-                                      z_moved_collections)
+    ceval = max(elongation_list)
+    ctval = compute_average_triangularity(geom.x_collections, geom.y_collections)
+    arval = compute_average_aspect_ratio(geom.x_moved_collections,
+                                      geom.y_moved_collections,
+                                      geom.z_moved_collections)
     if init:
-        gp.TRIAL_ELONGATION = CE
-        gp.CURRENT_AR = AR
-        gp.CURRENT_TRIANGULARITY = CT
+        gp.TRIAL_ELONGATION = ceval
+        gp.CURRENT_AR = arval
+        gp.CURRENT_TRIANGULARITY = ctval
     if plot:
         merge_stls(file_list, "./outputs/" + cfg.STUDY_NAME + "_" +
                     cfg.METHOD + "_" + filename + ".stl")
-        plot_geometry([x_collections, y_collections], [ctrl_x_collections, ctrl_y_collections],
-                  [x, y, z], [ctrl_x, ctrl_y, ctrl_z],
-                  [x_moved_collections, y_moved_collections, z_moved_collections],
-                  guide_vane_collections, "./outputs/" + cfg.STUDY_NAME +
-                    "_" + cfg.METHOD + "_" + filename + ".stl",
-                  filename=filename)
-    return CE, CT, AR
+        plot_geometry([geom.x_collections, geom.y_collections],
+                        [geom.ctrl_x_collections, geom.ctrl_y_collections],
+                        [poloidgeom.x, poloidgeom.y, poloidgeom.z],
+                        [poloidgeom.ctrl_x, poloidgeom.ctrl_y, poloidgeom.ctrl_z],
+                        [geom.x_moved_collections, geom.y_moved_collections,
+                         geom.z_moved_collections],
+                        guide_vane_collections, "./outputs/" + cfg.STUDY_NAME +
+                        "_" + cfg.METHOD + "_" + filename + ".stl",
+                        filename=filename)
+    return ceval, ctval, arval
 
 def geometry_optimise(toroidal_sections, poloidal_sections):
     """
@@ -182,15 +215,15 @@ def geometry_optimise(toroidal_sections, poloidal_sections):
     functions related to the geometry.
     """
     _, _, \
-        x_moved_collections ,y_moved_collections, z_moved_collections, \
-            _, _, toroidal_coordinates, toroidal_tangents, _, _, _, _, _, _ = geometry_preprocess(toroidal_sections,
-                                                                               poloidal_sections,
-                                                                               mode=1)
+        x_moved_collections ,y_moved_collections, z_moved_collections,\
+            _, _, toroidal_coordinates, toroidal_tangents,\
+                _, _, _, _, _, _ = geometry_preprocess(toroidal_sections,
+                                                        poloidal_sections)
 
-    elongation_list, _, _ = geometry_elongation(poloidal_sections, \
-                                            x_moved_collections,
+    elongation_list, _, _ = geometry_elongation(poloidal_sections,
+                                            [x_moved_collections,
                                             y_moved_collections,
-                                            z_moved_collections, \
+                                            z_moved_collections],
                                             toroidal_tangents, toroidal_coordinates,
                                             plot=False)
     # gp.TRIAL_ELONGATION = np.percentile(elongation_list, 95)
@@ -205,9 +238,8 @@ def geometry_constraint(toroidal_sections, poloidal_sections):
     """
     x_collections, y_collections, \
         x_moved_collections ,y_moved_collections, z_moved_collections, \
-            _, _, _, toroidal_tangents, _, _, _, _, _, _ = geometry_preprocess(toroidal_sections,
-                                                                               poloidal_sections,
-                                                                               mode=1)
+            _, _, _, _, _, _, _, _, _, _ = geometry_preprocess(toroidal_sections,
+                                                                               poloidal_sections)
 
     gp.CURRENT_TRIANGULARITY = compute_average_triangularity(x_collections, y_collections)
     gp.CURRENT_AR = compute_average_aspect_ratio(x_moved_collections,
@@ -224,7 +256,7 @@ def geometry_pipeline(toroidal_sections, poloidal_sections):
     mode: An integer indicating the mode of operation (0 for reading from files, 
             1 for using provided data).
     """
-    TRIAL_ELONGATION = geometry_optimise(toroidal_sections, poloidal_sections)
-    CURRENT_TRIANGULARITY, CURRENT_AR = geometry_constraint(toroidal_sections, poloidal_sections)
+    trial_elongation = geometry_optimise(toroidal_sections, poloidal_sections)
+    current_triangularity, current_ar = geometry_constraint(toroidal_sections, poloidal_sections)
 
-    return TRIAL_ELONGATION, CURRENT_TRIANGULARITY, CURRENT_AR
+    return trial_elongation, current_triangularity, current_ar
