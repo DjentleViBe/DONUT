@@ -295,22 +295,24 @@ Solutions obtained using \texttt{Scipy} algorithms
 are provided.
 
 \begin{table}
-  \caption{Maximum elongation for Type 1 geometry after optimiser with various algorithms.}
+  \caption{Maximum elongation across different geometry types after optimization using various algorithms.}
   \label{scipyoptim}
   \centering
-  \begin{tabular}{lll}
+  \begin{tabular}{l|ll|ll|ll}
     \toprule
-    \multicolumn{3}{c}{$\epsilon_\text{init}$ = 2.8075}                   \\
-    \cmidrule(r){1-3}
-    Optimiser     & \texttt{nfev}     & $\epsilon_\text{max}$ \\
+    & \multicolumn{2}{c|}{Type 1}& \multicolumn{2}{c|}{Type 2}&\multicolumn{2}{c}{Type 3}             \\
+    \cmidrule(r){1-7}
+    & \multicolumn{2}{c|}{$\epsilon_\text{init}$ = 4.8509}& \multicolumn{2}{c|}{$\epsilon_\text{init}$ = 1.4985}&\multicolumn{2}{c}{$\epsilon_\text{init}$ = }             \\
+    \cmidrule(r){1-7}
+    Optimiser     & \texttt{nfev}     & $\epsilon_\text{max}$ & \texttt{nfev}     & $\epsilon_\text{max}$ & \texttt{nfev}     & $\epsilon_\text{max}$ \\
     \midrule
-    L-BFGS-B & 8649  & $1.7566$   \\
-    Nelder-Mead     & 142 & $2.4101$    \\
-    Trust-constr     & 5022       & $1.9123$  \\
-    COBYLA     & 184       & $1.7453$  \\
-    COBYQA     & 284       & $1.8862$  \\
-    SLSQP     & 96       & $2.2197$  \\
-    Powell     & 4900       & $2.0953$  \\
+    L-BFGS-B & 372  & $3.0968$  & 672 & 1.3620 \\
+    Nelder-Mead     & 95 & $4.3647$   & 88 & 1.3766 \\
+    Trust-constr     &   186     & $4.7543$  & 64 & 1.4617\\
+    COBYLA     & 184       & $2.7906$  & 62 & 1.1257\\
+    COBYQA     & 188       & $3.7076$  & 66 & 1.2460\\
+    SLSQP     & 283       & $3.5246$  & 101 & 1.1341\\
+    Powell     &    184    & $4.0724$  & 62 & 1.4957 \\
     \bottomrule
   \end{tabular}
 \end{table}
