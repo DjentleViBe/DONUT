@@ -203,7 +203,7 @@ domain for a GPU-accelerated MHD equilibrium solver that
 operates in physical space rather than flux coordinates to solve 
 for MHD equilibrium. Minimum normalised magnetic gradient scale length 
 can then be used for Simple-to-build QI and MHD-stable-QI type problems.
-
+The source code of this work is available at \url{https://github.com/DjentleViBe/DONUT}.
 \section{Geometry}
 The Geometric problem is originally defined as:
 \begin{equation}
@@ -259,8 +259,23 @@ form the complete geometry.
   A twist parameter is then specified along the 3D guide curve. The base cross-section is 
   lofted along the guide vane, while twist and scaling transformations are applied about the local tangential direction.
   \item \textbf{Type 3} - The $r_p$ and $\psi$ parameters defining the 2D spline are treated as spatially varying functions along the guide vane.
+  \item \textbf{Type 4} - A candidate geometry is represented as 
+  the union of N spherical primitives, each defined by its 
+  centre coordinates and radius $(x_i, y_i, z_i, r_i)$. 
+  The parameters of all spheres form the chromosome used 
+  by the genetic algorithm. Geometric variation 
+  is achieved by modifying sphere positions and radii, 
+  allowing both shape and topology changes during 
+  optimisation. Compared with voxel-based encodings, 
+  sphere-based representations provide a more compact 
+  design space while retaining the ability to represent 
+  complex three-dimensional geometries. Similar primitive-based 
+  approaches have been used in evolutionary shape 
+  optimisation and explicit topology optimisation 
+  frameworks such as those of \cite{baron1999voxel} \cite{guo2014mmc}.
 \end{itemize}
- 
+
+\section{Optimisation}
 A NURBS curve of degree $p$ is defined as:
 \begin{equation}\label{equation:nurbs}
 \mathbf{C}(u)=
@@ -281,6 +296,7 @@ r_i \sin\theta_i \sin\phi_i \\
 r_i \cos\theta_i
 \end{bmatrix},
 \]
+\subsection{Gradient based methods}
 The following variables are parametrisable:
 $(\theta_{t}, \phi_{t}, r_{t}, w_{t})_{\text{N}_\text{t}}$, 
 $(s_{t}, \psi_{p}, r_{p}, w_{p})_{\text{N}_\text{p}}$. The objective  
@@ -294,8 +310,12 @@ Solutions obtained using \texttt{Scipy} algorithms
 \texttt{Nelder-Mead}, \texttt{trust-constr} and \texttt{Powell}
 are provided.
 
+\subsection{Genetic Algorithm}
+
+\subsection{Neural Networks}
+
 \begin{table}
-  \caption{Maximum elongation across different geometry types after optimization using various algorithms.}
+  \caption{Maximum elongation across different geometry types after optimization using Gradient based methods.}
   \label{scipyoptim}
   \centering
   \begin{tabular}{l|ll|ll|ll}
@@ -317,15 +337,13 @@ are provided.
   \end{tabular}
 \end{table}
 
+\subsection*{Acknowledgments}
+This research received no specific grant from any funding agency in the public, commercial,
+or not-for-profit sectors.
 
 \begin{ack}
-Use unnumbered first level headings for the acknowledgments. All acknowledgments
-go at the end of the paper before the list of references. Moreover, you are required to declare
-funding (financial activities supporting the submitted work) and competing interests (related financial activities outside the submitted work).
-More information about this disclosure can be found at: \url{https://neurips.cc/Conferences/2026/PaperInformation/FundingDisclosure}.
-
-
-Do {\bf not} include this section in the anonymized submission, only in the final paper. You can use the \texttt{ack} environment provided in the style file to automatically hide this section in the anonymized submission.
+This research received no specific grant from any funding agency in the public, commercial, or
+not-for-profit sectors.
 \end{ack}
 
 \bibliographystyle{plain}
