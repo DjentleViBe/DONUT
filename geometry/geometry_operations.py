@@ -40,6 +40,34 @@ def generate_clamped_knots(n_ctrl, degree):
             knots.append((i - p) / (n - p))
     return knots
 
+def N(i, p, u, knots):
+    if p == 0:
+        return 1.0 if knots[i] <= u < knots[i+1] else 0.0
+    denom1 = knots[i+p] - knots[i]
+    denom2 = knots[i+p+1] - knots[i+1]
+    term1 = 0.0
+    term2 = 0.0
+    if denom1 != 0:
+        term1 = (u - knots[i]) / denom1 * N(i, p-1, u, knots)
+    if denom2 != 0:
+        term2 = (knots[i+p+1] - u) / denom2 * N(i+1, p-1, u, knots)
+    return term1 + term2
+
+def nurbs_gen(ctrlpts, weights, degree, u):
+    n = len(ctrlpts) - 1
+    knots = np.concatenate((
+    np.zeros(degree),
+    np.linspace(0, 1, n - degree + 2),
+    np.ones(degree)
+    ))
+    numerator = np.zeros(2)
+    denominator = 0.0
+    for i in range(n+1):
+        Ni = N(i, degree, u, knots)
+        numerator += Ni * weights[i] * np.array(ctrlpts[i])
+        denominator += Ni * weights[i]
+    return numerator / (denominator)
+
 def nurbs_curve(ctrl_pts, weights, degree, num_points=100):
     """
     Evaluate a NURBS curve without external libraries.
