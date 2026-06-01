@@ -3,9 +3,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 from geometry import geometry_process as gp
-from geometry.geometry_plotter import plot_geometry
-from geometry.geometry_build import merge_stls
-from launch_geometry import geometry_elongation
+from geometry.geometry_operations import nurbs_curve, nurbs_gen, nurbs_curve_periodic
 from geometry import geometry_fourier as gf
 import matplotlib.pyplot as plt
 import numpy as np
@@ -15,7 +13,9 @@ from geometry.geometry_sector import build_sketch_sector, build_sketch_sector_to
 from geometry.geometry_reader import get_poloidal_sections_from_toroidal_file, \
                             get_geometry_parameters_from_poloidal_file,\
                             get_geometry_parameters_from_toroidal_file
-from geometry.geometry_operations import rotate_poloidal_section
+from geometry.geometry_operations import rotate_poloidal_section, generate_periodic_data
+from launch_geometry import geometry_elongation
+import json
 
 def plot_typethree(points_2d, ctrl_2d,
                   points_3d, ctrl_3d,
@@ -102,10 +102,10 @@ def plot_typethree(points_2d, ctrl_2d,
     # plot_stl(ax3, stlfile)
     # plt.suptitle(f"Study type : {cfg.STUDY_NAME}, Method : {cfg.METHOD}", 
     #            fontweight='bold', fontsize=16)
-    ax3.text(0.3, 1.0, 0, r'$\mathbf{T_1}$($r_{t_1}, \theta_{1}, \phi_{1}$)')
-    ax3.text(0.9, 0.3, -0.08, r'$P_1$($r_{p_1}, \psi_{1}$)', color=cfg.color[3])
-    ax3.text(0.7, 0.3, -0.1, r'$\mathbf{Q}$')
-    ax3.text(0.0, -0.8, -0.1, r'$\alpha$')
+    ax3.text(0.1, 1.0, 0, r'$\mathbf{T_1}$($r_{t_1}, \theta_{1}, \phi_{1}$)')
+    ax3.text(-0.3, 1.0, 0.16, r'$P_1$($r_{p_1}, \psi_{1}$)', color=cfg.color[3])
+    ax3.text(-0.33, 1.0, -0.1, r'$\mathbf{Q}$')
+    # ax3.text(0.0, -0.8, -0.1, r'$\alpha$')
     
     plt.legend()
     plt.savefig(f"./_paper/{filename}.pdf")
@@ -125,40 +125,40 @@ def geometry_preprocess(toroidal_sections, poloidal_sections, mode):
     z_moved_ctrl_collections = []
     ctrl_x_collections = []
     ctrl_y_collections = []
-    curve, ctrl = build_sketch_sector_toroidal(toroidal_sections['theta'],
+    curvegeo = build_sketch_sector_toroidal(toroidal_sections['theta'],
                                             toroidal_sections['phi'],
                                             toroidal_sections['radius'],
                                             toroidal_sections['degree'],
                                             toroidal_sections['weights'])
-    x, y, z = curve
-    ctrl_x, ctrl_y, ctrl_z = ctrl
-    toroidal_coordinates, toroidal_tangents = get_toroidal_coordinates_tangent(toroidal_sections['sections'],
+    x, y, z = curvegeo.curve
+    ctrl_x, ctrl_y, ctrl_z = curvegeo.ctrl
+    toroidal_geo = get_toroidal_coordinates_tangent(toroidal_sections['sections'],
                                                         [x, y, z])
     for i, poloidal_file in enumerate(poloidal_sections):
         if mode == 0:
             poloid_file = get_geometry_parameters_from_poloidal_file("./inputs/" +
                                                     poloidal_file + ".json")
-            x_p, y_p, ctrl_xp, ctrl_yp = build_sketch_sector(poloid_file['theta'],
+            bss = build_sketch_sector(poloid_file['theta'],
                                                     poloid_file['radius'],
                                                     poloid_file['degree'],
                                                     poloid_file['weights'])
         else:
-            x_p, y_p, ctrl_xp, ctrl_yp = build_sketch_sector(poloidal_file['psi'],
+            bss = build_sketch_sector(poloidal_file['psi'],
                                                     poloidal_file['radius'],
                                                     poloidal_file['degree'],
                                                     poloidal_file['weights'])
-        x_collections.append(x_p)
-        y_collections.append(y_p)
-        ctrl_x_collections.append(ctrl_xp)
-        ctrl_y_collections.append(ctrl_yp)
+        x_collections.append(bss.x_p)
+        y_collections.append(bss.y_p)
+        ctrl_x_collections.append(bss.ctrl_xp)
+        ctrl_y_collections.append(bss.ctrl_yp)
         # moved_points = move_poloidal_section_origin([x, y], toroidal_coordinates[i])
-        moved_points = rotate_poloidal_section([x_p, y_p, [0.0]*len(x_p)],
-                                               toroidal_coordinates[i],
-                                               toroidal_tangents[i])
-        moved_ctrl_points = rotate_poloidal_section([ctrl_xp, ctrl_yp,
-                                                     [0.0]*len(ctrl_xp)],
-                                               toroidal_coordinates[i],
-                                               toroidal_tangents[i])
+        moved_points = rotate_poloidal_section([bss.x_p, bss.y_p, [0.0]*len(bss.x_p)],
+                                               toroidal_geo.toroidal_coordinates[i],
+                                               toroidal_geo.toroidal_tangents[i])
+        moved_ctrl_points = rotate_poloidal_section([bss.ctrl_xp, bss.ctrl_yp,
+                                                     [0.0]*len(bss.ctrl_xp)],
+                                               toroidal_geo.toroidal_coordinates[i],
+                                               toroidal_geo.toroidal_tangents[i])
         x_moved_collections.append(moved_points[0])
         y_moved_collections.append(moved_points[1])
         z_moved_collections.append(moved_points[2])
@@ -169,7 +169,7 @@ def geometry_preprocess(toroidal_sections, poloidal_sections, mode):
     return x_collections, y_collections, \
         x_moved_collections ,y_moved_collections, z_moved_collections, \
             ctrl_x_collections, ctrl_y_collections, \
-            toroidal_coordinates, toroidal_tangents, \
+            toroidal_geo.toroidal_coordinates, toroidal_geo.toroidal_tangents, \
             x, y, z, ctrl_x, ctrl_y, ctrl_z,\
             x_moved_ctrl_collections, y_moved_ctrl_collections, z_moved_ctrl_collections
 
@@ -192,10 +192,11 @@ def geometry_construct(toroidal_sections, poloidal_sections, mode, init=False, p
                                                                        mode)
 
     elongation_list, file_list, guide_vane_collections = geometry_elongation(poloidal_sections, \
-                                                                x_moved_collections,
+                                                                [x_moved_collections,
                                                                 y_moved_collections,
-                                                                z_moved_collections, \
-                                                                toroidal_tangents, plot=True)
+                                                                z_moved_collections], \
+                                                                toroidal_tangents, 
+                                                                toroidal_coordinates, plot=True)
     if plot:
         # merge_stls(file_list, "./typethree.stl")
         plot_typethree([x_collections, y_collections], [ctrl_x_collections, ctrl_y_collections],
@@ -212,3 +213,100 @@ gp.FORMAT = data_format
 toroidal_sections, poloidal_sections = gf.delinearize_data(x0)
 geometry_construct(toroidal_sections, poloidal_sections,
                           1, plot=True, filename="./typethree_geometry")
+
+psi = []
+radius = []
+phi = []
+for i in range(4):
+    filename = "./inputs/poloidal_section_" + str(i + 1) + ".json"
+    with open(filename, "r", encoding="utf-8") as f:
+        data = json.load(f)
+        nval = data.get("N_s")
+        psi.append(np.array(data.get("psi")) * nval / 360)
+        radius.append(np.array(data.get("radius")))
+
+filename = "./inputs/toroidal_section.json"
+with open(filename, "r", encoding="utf-8") as f:
+    data = json.load(f)
+    phi.append(np.array(data.get("sections")))
+
+plt.cla()
+plt.close()
+u_vals = np.linspace(0, 1, 200)
+fig, ((ax_1, ax_2), (ax_3, ax_4)) = plt.subplots(2, 2, figsize=(12, 8))
+x = np.linspace(0, 1, 4)
+psi_nurbs = []
+weights = [1.0, 1.0, 1.0, 1.0]  # Example weights for the control points
+degree = 2
+for i in range(len(psi[0])):
+    psi_0 = [p[i] / (2 * np.pi) for p in psi]
+    ax_3.plot(phi[0], psi_0, label=r"$\psi_" + str(i + 1) + "$", marker='o', 
+              linewidth = 0.8)
+    psi_nurbs.append([[phi[0][0],psi_0[0]],
+                      [phi[0][1],psi_0[1]],
+                           [phi[0][2],psi_0[2]],
+                           [phi[0][3],psi_0[3]],
+                           [1.0,psi_0[0]]])
+
+    curve_points = np.array([nurbs_gen(psi_nurbs[i], 
+                            [1.0, 5.0, 5.0, 5.0, 1.0], 2, u) for u in u_vals])
+    ax_3.plot(curve_points[:, 0], curve_points[:, 1],
+              linestyle='--', color = cfg.color[i], 
+              linewidth = 0.8)
+    
+    radius_0 = [r[i] for r in radius]
+    ax_4.plot(phi[0], radius_0, label=r"$r_" + str(i + 1) + "$", marker='o')
+
+
+ax_3.legend(loc='upper right')
+ax_3.set_xlabel(r"$\theta$ (normalized by 2$\pi$)")
+ax_3.set_ylabel(r"$\psi$ (normalized by 2$\pi$)")
+ax_3.set_title("Poloidal Angles")
+ax_4.legend(loc='upper right')
+ax_4.set_xlabel(r"$\theta$ (normalized by 2$\pi$)")
+ax_4.set_ylabel(r"$r$ (normalized by $a$)")
+ax_4.set_title("Poloidal Radii")
+
+for i in range(len(psi[0])):
+    psi_0 = [p[i] for p in psi]
+    radius_0 = [r[i] for r in radius]
+
+psi_deltas = []
+psi_delta_nurbs = []
+radius_deltas = []
+bss = []
+for i in range(1, len(psi[0])):
+    psi_0 = [p[i] for p in psi]
+    radius_0 = [r[i] for r in radius]
+    psi_delta = [psi_0[j] - psi_0[j-1] for j in range(1, len(psi_0))]
+    radius_delta = [radius_0[j] - radius_0[j-1] for j in range(1, len(radius_0))]
+    psi_deltas.append(psi_delta)
+    radius_deltas.append(radius_delta)
+
+for j in range(len(psi[0])-1):
+    psi_delta_nurbs.append([[phi[0][1],psi_deltas[j][0]],
+                           [phi[0][2],psi_deltas[j][1]],
+                           [phi[0][3],psi_deltas[j][2]]])
+    curve_points = np.array([nurbs_gen(psi_delta_nurbs[j], [1.0, 5.0, 1.0], 2, u) for u in u_vals])
+    ax_1.plot(curve_points[:,0], curve_points[:,1], linestyle='--', color = cfg.color[j], linewidth = 0.8)
+    ax_1.plot(phi[0][1:], psi_deltas[j], 
+              label=r"$\psi_" + str(j + 1) + "$", 
+              marker='o', color = cfg.color[j],
+              linewidth = 0.8)
+    ax_2.plot(phi[0][1:], radius_deltas[j], 
+              label=r"$r_" + str(j + 1) + "$", 
+              marker='o', color = cfg.color[j],
+              linewidth = 0.8)
+
+ax_1.legend(loc='upper right')
+ax_1.set_xlabel(r"$\theta$ (normalized by 2$\pi$)")
+ax_1.set_ylabel(r"$\Delta  \psi$ (normalized by 2$\pi$)")
+ax_1.set_title("Poloidal Angles")
+ax_1.grid(True, linestyle='--', alpha=0.5)
+ax_2.legend(loc='upper right')
+ax_2.set_xlabel(r"$\theta$ (normalized by 2$\pi$)")
+ax_2.set_ylabel(r"$\Delta r$ (normalized by $a$)")
+ax_2.set_title("Poloidal Radii")
+ax_2.grid(True, linestyle='--', alpha=0.5)
+plt.tight_layout()
+plt.savefig("./_paper/poloidal_delta_psi.pdf")
