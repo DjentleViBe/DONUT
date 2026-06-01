@@ -1,7 +1,7 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./Donut.png">
   <source media="(prefers-color-scheme: light)" srcset="./Donut.png">
-  <img alt="DONUT logo." src="https://github.com/user-attachments/assets/ec4e391a-9044-44ae-93f0-9dd8bed70001" width=100px>
+  <img alt="DONUT logo." src="https://github.com/user-attachments/assets/ec4e391a-9044-44ae-93f0-9dd8bed70001" width=200px>
 </picture>
 
 # DONUT : Design and Optimization of Non-axisymmetric Unified Tori
