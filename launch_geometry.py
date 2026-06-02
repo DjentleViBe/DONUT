@@ -21,6 +21,7 @@ from objectives import compute_elongation_fit, compute_average_triangularity, \
 from classes_geometry import GeometryData, \
                             PoloidalGeometry, \
                             ToroidalGeometry
+from geometry.geometry_operations import nurbs_gen
 # from scipy.special import logsumexp
 
 def softmax_max(x, beta=10.0):
