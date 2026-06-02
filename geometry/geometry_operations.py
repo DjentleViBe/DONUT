@@ -66,7 +66,7 @@ def nurbs_gen(ctrlpts, weights, degree, u):
         Ni = N(i, degree, u, knots)
         numerator += Ni * weights[i] * np.array(ctrlpts[i])
         denominator += Ni * weights[i]
-    return numerator / (denominator)
+    return numerator / (denominator + 1e-12)
 
 def nurbs_curve(ctrl_pts, weights, degree, num_points=100):
     """
