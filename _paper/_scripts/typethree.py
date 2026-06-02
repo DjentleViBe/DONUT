@@ -214,6 +214,9 @@ toroidal_sections, poloidal_sections = gf.delinearize_data(x0)
 geometry_construct(toroidal_sections, poloidal_sections,
                           1, plot=True, filename="./typethree_geometry")
 
+def check_clash(array):
+    return np.all(np.diff(array, axis=1) >= 0)
+
 psi = []
 radius = []
 phi = []
@@ -282,6 +285,9 @@ for i in range(1, len(psi[0])):
     radius_delta = [radius_0[j] - radius_0[j-1] for j in range(1, len(radius_0))]
     psi_deltas.append(psi_delta)
     radius_deltas.append(radius_delta)
+
+print(check_clash(psi))
+print(check_clash(psi_deltas))
 
 for j in range(len(psi[0])-1):
     psi_delta_nurbs.append([[phi[0][1],psi_deltas[j][0]],
