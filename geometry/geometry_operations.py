@@ -68,6 +68,32 @@ def nurbs_gen(ctrlpts, weights, degree, u):
         denominator += Ni * weights[i]
     return numerator / (denominator + 1e-12)
 
+def nurbs_gen_periodic(ctrlpts, weights, degree, u):
+    """
+    Generate nurbs curve periodic with C1 continuity
+    """
+    ctrlpts = np.asarray(ctrlpts)
+    weights = np.asarray(weights)
+    # wrap first p control points
+    ctrlpts_ext = np.vstack([ctrlpts, ctrlpts[:degree]])
+    weights_ext = np.concatenate([weights, weights[:degree]])
+    m = len(ctrlpts_ext)
+
+    # periodic uniform knot vector
+    knots = np.arange(m + degree + 1, dtype=float)
+
+    # map u∈[0,1] to valid parameter range
+    u = degree + u * (len(ctrlpts))
+    numerator = np.zeros(2)
+    denominator = 0.0
+
+    for i in range(m):
+        Ni = N(i, degree, u, knots)
+        numerator += Ni * weights_ext[i] * ctrlpts_ext[i]
+        denominator += Ni * weights_ext[i]
+
+    return numerator / (denominator + 1e-12)
+
 def nurbs_curve(ctrl_pts, weights, degree, num_points=100):
     """
     Evaluate a NURBS curve without external libraries.
