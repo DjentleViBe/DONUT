@@ -3,7 +3,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 from geometry import geometry_process as gp
-from geometry.geometry_operations import nurbs_curve, nurbs_gen, nurbs_curve_periodic
+from geometry.geometry_operations import nurbs_gen_periodic, nurbs_gen
 from geometry import geometry_fourier as gf
 import matplotlib.pyplot as plt
 import numpy as np
@@ -225,7 +225,7 @@ for i in range(4):
     with open(filename, "r", encoding="utf-8") as f:
         data = json.load(f)
         nval = data.get("N_s")
-        psi.append(np.array(data.get("psi")) * nval / 360)
+        psi.append(np.array(data.get("psi")) / 360.0)
         radius.append(np.array(data.get("radius")))
 
 filename = "./inputs/toroidal_section.json"
@@ -239,10 +239,11 @@ u_vals = np.linspace(0, 1, 200)
 fig, ((ax_1, ax_2), (ax_3, ax_4)) = plt.subplots(2, 2, figsize=(12, 8))
 x = np.linspace(0, 1, 4)
 psi_nurbs = []
+radius_nurbs = []
 weights = [1.0, 1.0, 1.0, 1.0]  # Example weights for the control points
 degree = 2
 for i in range(len(psi[0])):
-    psi_0 = [p[i] / (2 * np.pi) for p in psi]
+    psi_0 = [p[i] for p in psi]
     ax_3.plot(phi[0], psi_0, label=r"$\psi_" + str(i + 1) + "$", marker='o', 
               linewidth = 0.8)
     psi_nurbs.append([[phi[0][0],psi_0[0]],
@@ -251,7 +252,7 @@ for i in range(len(psi[0])):
                            [phi[0][3],psi_0[3]],
                            [1.0,psi_0[0]]])
 
-    curve_points = np.array([nurbs_gen(psi_nurbs[i], 
+    curve_points = np.array([nurbs_gen_periodic(psi_nurbs[i], 
                             [1.0, 5.0, 5.0, 5.0, 1.0], 2, u) for u in u_vals])
     ax_3.plot(curve_points[:, 0], curve_points[:, 1],
               linestyle='--', color = cfg.color[i], 
@@ -259,7 +260,18 @@ for i in range(len(psi[0])):
     
     radius_0 = [r[i] for r in radius]
     ax_4.plot(phi[0], radius_0, label=r"$r_" + str(i + 1) + "$", marker='o')
+    print(radius_0)
+    radius_nurbs.append([[phi[0][0],radius_0[0]],
+                      [phi[0][1],radius_0[1]],
+                           [phi[0][2],radius_0[2]],
+                           [phi[0][3],radius_0[3]],
+                           [1.0,radius_0[0]]])
 
+    radius_points = np.array([nurbs_gen(radius_nurbs[i], 
+                            [1.0, 5.0, 5.0, 5.0, 1.0], 2, u) for u in u_vals])
+    ax_4.plot(radius_points[:, 0][:-1], radius_points[:, 1][:-1],
+              linestyle='--', color = cfg.color[i], 
+              linewidth = 0.8)
 
 ax_3.legend(loc='upper right')
 ax_3.set_xlabel(r"$\theta$ (normalized by 2$\pi$)")
