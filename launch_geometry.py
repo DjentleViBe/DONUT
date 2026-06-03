@@ -100,17 +100,17 @@ def geometry_preprocess(toroidal_sections, poloidal_sections):
                             [toroidal_sections['sections'][1], psi_0[1]],
                             [toroidal_sections['sections'][2], psi_0[2]],
                             [toroidal_sections['sections'][3], psi_0[3]],
-                            ])
+                            [1.0, psi_0[0]]])
             radius_nurbs.append([[toroidal_sections['sections'][0], radius_0[0]],
                             [toroidal_sections['sections'][1], radius_0[1]],
                             [toroidal_sections['sections'][2], radius_0[2]],
                             [toroidal_sections['sections'][3], radius_0[3]],
-                            ])
+                            [1.0, radius_0[0]]])
             curve_points_psi = np.array([nurbs_gen_periodic(psi_nurbs[i], 
-                                [1.0, 5.0, 5.0, 1.0], 2, u) for u in u_vals])
+                                [1.0, 5.0, 5.0, 5.0, 1.0], 2, u) for u in u_vals])
             psi_points.append(curve_points_psi[:, 1])
             curve_points_radius = np.array([nurbs_gen_periodic(radius_nurbs[i], 
-                                [1.0, 5.0, 5.0, 1.0], 2, u) for u in u_vals])
+                                [1.0, 5.0, 5.0, 5.0, 1.0], 2, u) for u in u_vals])
             radius_points.append(curve_points_radius[:, 1])
         toroid_geom = get_toroidal_coordinates_tangent(u_vals, curvegeom.curve)
         for k in range(cfg.NUM_T):
