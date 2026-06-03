@@ -21,7 +21,7 @@ from objectives import compute_elongation_fit, compute_average_triangularity, \
 from classes_geometry import GeometryData, \
                             PoloidalGeometry, \
                             ToroidalGeometry
-from geometry.geometry_operations import nurbs_gen_periodic
+from geometry.geometry_operations import nurbs_gen, get_nurbs_y
 # from scipy.special import logsumexp
 
 def softmax_max(x, beta=10.0):
@@ -51,6 +51,7 @@ def geometry_preprocess(toroidal_sections, poloidal_sections):
                                             toroidal_sections['degree'],
                                             toroidal_sections['weights'],
                                             cfg.NUM_T)
+
     toroidal_geom = get_toroidal_coordinates_tangent(toroidal_sections['sections'],
                                                     curvegeom.curve)
     if cfg.STUDY_NAME == "Type2":
@@ -92,7 +93,7 @@ def geometry_preprocess(toroidal_sections, poloidal_sections):
         radius_nurbs = []
         psi_points = []
         radius_points = []
-        u_vals = np.linspace(0, 1, cfg.NUM_T + 1)
+        u_vals = np.linspace(0, 1, cfg.NUM_T)
         for i in range(len(psi_collect[0])):
             psi_0 = [p[i] / 360.0 for p in psi_collect]
             radius_0 = [r[i] for r in radius_collect]
@@ -100,32 +101,34 @@ def geometry_preprocess(toroidal_sections, poloidal_sections):
                             [toroidal_sections['sections'][1], psi_0[1]],
                             [toroidal_sections['sections'][2], psi_0[2]],
                             [toroidal_sections['sections'][3], psi_0[3]],
-                            [1.0, psi_0[0]]])
+                            [1.0, 1.0]])
             radius_nurbs.append([[toroidal_sections['sections'][0], radius_0[0]],
                             [toroidal_sections['sections'][1], radius_0[1]],
                             [toroidal_sections['sections'][2], radius_0[2]],
                             [toroidal_sections['sections'][3], radius_0[3]],
-                            [1.0, radius_0[0]]])
-            curve_points_psi = np.array([nurbs_gen_periodic(psi_nurbs[i], 
-                                [1.0, 5.0, 5.0, 5.0, 1.0], 2, u) for u in u_vals])
-            psi_points.append(curve_points_psi[:, 1])
-            curve_points_radius = np.array([nurbs_gen_periodic(radius_nurbs[i], 
-                                [1.0, 5.0, 5.0, 5.0, 1.0], 2, u) for u in u_vals])
-            radius_points.append(curve_points_radius[:, 1])
-        toroid_geom = get_toroidal_coordinates_tangent(u_vals, curvegeom.curve)
+                            [1.0, 1.0]])
+            psi_points.append(get_nurbs_y(u_vals, 
+                        psi_nurbs[i], 
+                        [1.0, 5.0, 5.0, 5.0, 1.0],
+                        1))
+            radius_points.append(get_nurbs_y(u_vals, 
+                        radius_nurbs[i], 
+                        [1.0, 5.0, 5.0, 5.0, 1.0],
+                        1))
+        toroid_geom = get_toroidal_coordinates_tangent(u_vals,
+                                                    curvegeom.curve)
         for k in range(cfg.NUM_T):
             section_psi = np.array([p[k] * 360 for p in psi_points])
             section_radius = np.array([r[k] for r in radius_points])
             curvegeompol = build_sketch_sector(section_psi,
                                                 section_radius,
-                                                poloidal_file['degree'],
-                                                    np.ones(len(psi_points)),
-                                                    cfg.NUM_P)
+                                                2,
+                                                np.ones(len(psi_points)),
+                                                cfg.NUM_P)
             geom.ctrl_x_collections.append(curvegeompol.ctrl_xp)
             geom.ctrl_y_collections.append(curvegeompol.ctrl_yp)
             geom.x_collections.append(curvegeompol.x_p)
             geom.y_collections.append(curvegeompol.y_p)
-
             moved_points = rotate_poloidal_section([curvegeompol.x_p, curvegeompol.y_p,
                                                     [0.0]*len(curvegeompol.x_p)],
                                                 toroid_geom.toroidal_coordinates[k],
@@ -133,6 +136,7 @@ def geometry_preprocess(toroidal_sections, poloidal_sections):
             geom.x_moved_collections.append(moved_points[0])
             geom.y_moved_collections.append(moved_points[1])
             geom.z_moved_collections.append(moved_points[2])
+        
     return geom.x_collections, geom.y_collections, \
             geom.x_moved_collections ,geom.y_moved_collections, geom.z_moved_collections, \
             geom.ctrl_x_collections, geom.ctrl_y_collections, \
@@ -191,7 +195,6 @@ def geometry_elongation(poloidal_sections, moved_collections,
                                      moved_collections[2][next_i]], axis=-1)
 
             section_pair = np.stack([current_section, next_section], axis=1)
-
             guide_vane_collections.append(section_pair)
             if plot:
                 vertices, faces = loft_revolved(np.asarray(guide_vane_collections[i]))

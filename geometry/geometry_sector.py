@@ -78,13 +78,6 @@ def build_sketch_sector_toroidal(theta, phi, radius, degree, weights, num_points
     return curvegeom
 
 def get_toroidal_coordinates_tangent(section_limits, points_3d):
-    """
-    Extract toroidal coordinates and tangents from 3D curve sampling points.
-
-    section_limits: list of floats in [0, 1]
-    points_3d: (3, N) array-like structure
-    """
-
     coords = []
     tangents = []
 
@@ -92,35 +85,37 @@ def get_toroidal_coordinates_tangent(section_limits, points_3d):
     y = np.asarray(points_3d[1])
     z = np.asarray(points_3d[2])
 
-    n = len(x)
+    # --- remove duplicate closure point if present ---
+    if np.allclose([x[0], y[0], z[0]], [x[-1], y[-1], z[-1]]):
+        x = x[:-1]
+        y = y[:-1]
+        z = z[:-1]
 
+    n = len(x)
     if n < 2:
-        raise ValueError("points_3d must contain at least 2 points")
+        raise ValueError("points_3d must contain at least 2 unique points")
 
     for s in section_limits:
 
-        # --- clamp to valid range (critical for optimizers like COBYLA) ---
-        s = float(np.clip(s, 0.0, 1.0))
+        # --- enforce periodicity ---
+        s = float(np.mod(s, 1.0))  # ensures s=1 -> s=0
 
-        # --- map [0,1] → valid index range ---
-        idx = int(round(s * (n - 1)))
-        idx = np.clip(idx, 0, n - 1)
+        idx = int(round(s * n)) % n
 
         coords.append((x[idx], y[idx], z[idx]))
 
-        # --- tangent computation (safe boundary handling) ---
-        if idx < n - 1:
-            dx = x[idx + 1] - x[idx]
-            dy = y[idx + 1] - y[idx]
-            dz = z[idx + 1] - z[idx]
-        else:
-            dx = x[idx] - x[idx - 1]
-            dy = y[idx] - y[idx - 1]
-            dz = z[idx] - z[idx - 1]
+        # --- cyclic central difference ---
+        idx_prev = (idx - 1) % n
+        idx_next = (idx + 1) % n
+
+        dx = 0.5 * (x[idx_next] - x[idx_prev])
+        dy = 0.5 * (y[idx_next] - y[idx_prev])
+        dz = 0.5 * (z[idx_next] - z[idx_prev])
 
         tangents.append((dx, dy, dz))
-    toroidal_geom = ToroidalGeometry(coords, tangents)
-    return toroidal_geom
+    tangents.append(tangents[0])
+    coords.append(coords[0])
+    return ToroidalGeometry(coords, tangents)
 
 def is_inside_torus_axis(P0, startcenter):
     """
