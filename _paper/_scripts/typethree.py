@@ -16,6 +16,10 @@ from geometry.geometry_reader import get_poloidal_sections_from_toroidal_file, \
 from geometry.geometry_operations import rotate_poloidal_section, generate_periodic_data
 from launch_geometry import geometry_elongation
 import json
+from classes_geometry import GeometryData, \
+                            PoloidalGeometry, \
+                            ToroidalGeometry
+from geometry.geometry_operations import nurbs_gen, get_nurbs_y
 
 def plot_typethree(points_2d, ctrl_2d,
                   points_3d, ctrl_3d,
@@ -49,7 +53,7 @@ def plot_typethree(points_2d, ctrl_2d,
     ax3.set_xlabel("X")
     ax3.set_ylabel("Y")
     ax3.set_zlabel("Z")
-    ax3.plot([0,ctrl_3d[1,0]], [0,ctrl_3d[1,1]], [0,ctrl_3d[1,2]],
+    ax3.plot([0,ctrl_3d[0,0]], [0,ctrl_3d[0,1]], [0,ctrl_3d[0,2]],
              color = 'k')
     
     ax3.plot([0,0], [0,0], [-2,2],
@@ -65,17 +69,18 @@ def plot_typethree(points_2d, ctrl_2d,
                 depthshade=False,
                 label = 'toroidal control points')
     # for i, x_section in enumerate(moved_points_3d[0]):
-    ax3.plot(moved_points_3d[0][3], moved_points_3d[1][3], moved_points_3d[2][3], color=cfg.color[3], label = 'poloidal section')
-    ax3.scatter(moved_ctrl_points[0][3], moved_ctrl_points[1][3], moved_ctrl_points[2][3], color=cfg.color[3], marker = '+',
+    ind = 3
+    ax3.plot(moved_points_3d[0][ind], moved_points_3d[1][ind], moved_points_3d[2][ind], color=cfg.color[3], label = 'poloidal section')
+    ax3.scatter(moved_ctrl_points[0][ind], moved_ctrl_points[1][ind], moved_ctrl_points[2][ind], color=cfg.color[3], marker = '+',
                 depthshade=False)
     ax3.scatter(toroidal_coordinates[3][0],
                 toroidal_coordinates[3][1],
                 toroidal_coordinates[3][2], color='k', depthshade=False)
 
     # original point
-    x0 = moved_ctrl_points[0][3]
-    y0 = moved_ctrl_points[1][3]
-    z0 = moved_ctrl_points[2][3]
+    x0 = moved_ctrl_points[0][ind]
+    y0 = moved_ctrl_points[1][ind]
+    z0 = moved_ctrl_points[2][ind]
     # angle range (40 degrees)
     theta = np.linspace(0, np.deg2rad(40), 200)
     # rotation
@@ -102,75 +107,112 @@ def plot_typethree(points_2d, ctrl_2d,
     # plot_stl(ax3, stlfile)
     # plt.suptitle(f"Study type : {cfg.STUDY_NAME}, Method : {cfg.METHOD}", 
     #            fontweight='bold', fontsize=16)
-    ax3.text(0.1, 1.0, 0, r'$\mathbf{T_1}$($r_{t_1}, \theta_{1}, \phi_{1}$)')
+    ax3.text(0.8, 0.0, 0.1, r'$\mathbf{T_1}$($r_{t_1}, \theta_{1}, \phi_{1}$)')
     ax3.text(-0.3, 1.0, 0.16, r'$P_1$($r_{p_1}, \psi_{1}$)', color=cfg.color[3])
-    ax3.text(-0.33, 1.0, -0.1, r'$\mathbf{Q}$')
+    # ax3.text(-0.33, 1.0, -0.1, r'$\mathbf{Q}$')
     # ax3.text(0.0, -0.8, -0.1, r'$\alpha$')
     
     plt.legend()
     plt.savefig(f"./_paper/{filename}.pdf")
 
-def geometry_preprocess(toroidal_sections, poloidal_sections, mode):
+def geometry_preprocess(toroidal_sections, poloidal_sections):
     """
     Preprocess the geometry data by building the sketches of the toroidal and poloidal sections.
     This function prepares the data for further processing and optimization.
     """
-    x_collections = []
-    y_collections = []
-    x_moved_collections = []
-    y_moved_collections = []
-    z_moved_collections = []
     x_moved_ctrl_collections = []
     y_moved_ctrl_collections = []
     z_moved_ctrl_collections = []
-    ctrl_x_collections = []
-    ctrl_y_collections = []
-    curvegeo = build_sketch_sector_toroidal(toroidal_sections['theta'],
+    geom = GeometryData([], [], [], [], [], [], [])
+    curvegeom = build_sketch_sector_toroidal(toroidal_sections['theta'],
                                             toroidal_sections['phi'],
                                             toroidal_sections['radius'],
                                             toroidal_sections['degree'],
-                                            toroidal_sections['weights'])
-    x, y, z = curvegeo.curve
-    ctrl_x, ctrl_y, ctrl_z = curvegeo.ctrl
-    toroidal_geo = get_toroidal_coordinates_tangent(toroidal_sections['sections'],
-                                                        [x, y, z])
+                                            toroidal_sections['weights'],
+                                            cfg.NUM_T)
+    x, y, z = curvegeom.curve
+    ctrl_x, ctrl_y, ctrl_z = curvegeom.ctrl
+    z = toroidal_sections['deltas']
+    expz = np.exp(z - np.max(z))
+    deltas = expz / expz.sum()
+    sections = np.cumsum(deltas)
+    sections = np.concatenate([[0], sections[:-1]])
+    toroidal_geom = get_toroidal_coordinates_tangent(sections, curvegeom.curve)
+    twist_params = (0.0, 0.0, 0.0)
+    psi_collect = []
+    radius_collect = []
     for i, poloidal_file in enumerate(poloidal_sections):
-        if mode == 0:
-            poloid_file = get_geometry_parameters_from_poloidal_file("./inputs/" +
-                                                    poloidal_file + ".json")
-            bss = build_sketch_sector(poloid_file['theta'],
-                                                    poloid_file['radius'],
-                                                    poloid_file['degree'],
-                                                    poloid_file['weights'])
-        else:
-            bss = build_sketch_sector(poloidal_file['psi'],
+        curvegeompol = build_sketch_sector(poloidal_file['psi'],
                                                     poloidal_file['radius'],
                                                     poloidal_file['degree'],
-                                                    poloidal_file['weights'])
-        x_collections.append(bss.x_p)
-        y_collections.append(bss.y_p)
-        ctrl_x_collections.append(bss.ctrl_xp)
-        ctrl_y_collections.append(bss.ctrl_yp)
-        # moved_points = move_poloidal_section_origin([x, y], toroidal_coordinates[i])
-        moved_points = rotate_poloidal_section([bss.x_p, bss.y_p, [0.0]*len(bss.x_p)],
-                                               toroidal_geo.toroidal_coordinates[i],
-                                               toroidal_geo.toroidal_tangents[i])
-        moved_ctrl_points = rotate_poloidal_section([bss.ctrl_xp, bss.ctrl_yp,
-                                                     [0.0]*len(bss.ctrl_xp)],
-                                               toroidal_geo.toroidal_coordinates[i],
-                                               toroidal_geo.toroidal_tangents[i])
-        x_moved_collections.append(moved_points[0])
-        y_moved_collections.append(moved_points[1])
-        z_moved_collections.append(moved_points[2])
+                                                    poloidal_file['weights'],
+                                                    cfg.NUM_P)
+        geom.ctrl_x_collections.append(curvegeompol.ctrl_xp)
+        geom.ctrl_y_collections.append(curvegeompol.ctrl_yp)
+        if cfg.STUDY_NAME == "Type3":
+            psi_collect.append(np.array(poloidal_file['psi']))
+            radius_collect.append(np.array(poloidal_file['radius']))
+    if cfg.STUDY_NAME == "Type3":
+        psi_nurbs = []
+        radius_nurbs = []
+        psi_points = []
+        radius_points = []
+        u_vals = np.linspace(0.0, 1.0, cfg.NUM_T)
+        for i in range(len(psi_collect[0])):
+            psi_0 = [p[i] / 360.0 for p in psi_collect]
+            radius_0 = [r[i] for r in radius_collect]
+            psi_nurbs.append([[sections[0], psi_0[0]],
+                            [sections[1], psi_0[1]],
+                            [sections[2], psi_0[2]],
+                            [sections[3], psi_0[3]],
+                            [1.0, 1.0 + psi_0[0]]])
+            radius_nurbs.append([[sections[0], radius_0[0]],
+                            [sections[1], radius_0[1]],
+                            [sections[2], radius_0[2]],
+                            [sections[3], radius_0[3]],
+                            [1.0, radius_0[0]]])
+            psi_points.append(get_nurbs_y(u_vals, 
+                        psi_nurbs[i], 
+                        [1.0, 5.0, 5.0, 5.0, 1.0],
+                        2)[:-1])
+            radius_points.append(get_nurbs_y(u_vals, 
+                        radius_nurbs[i], 
+                        [1.0, 5.0, 5.0, 5.0, 1.0],
+                        2))
+        toroid_geom = get_toroidal_coordinates_tangent(u_vals,
+                                                    curvegeom.curve)
+        for k in range(cfg.NUM_T):
+            section_psi = np.array([p[k] * 360 for p in psi_points])
+            section_radius = np.array([r[k] for r in radius_points])
+            curvegeompol = build_sketch_sector(section_psi,
+                                                section_radius,
+                                                2,
+                                                np.ones(len(psi_points)),
+                                                cfg.NUM_P)
+            geom.ctrl_x_collections.append(curvegeompol.ctrl_xp)
+            geom.ctrl_y_collections.append(curvegeompol.ctrl_yp)
+            geom.x_collections.append(curvegeompol.x_p)
+            geom.y_collections.append(curvegeompol.y_p)
+            moved_points = rotate_poloidal_section([curvegeompol.x_p, curvegeompol.y_p,
+                                                    [0.0]*len(curvegeompol.x_p)],
+                                                toroid_geom.toroidal_coordinates[k],
+                                                toroid_geom.toroidal_tangents[k], 0.0)
+            geom.x_moved_collections.append(moved_points[0])
+            geom.y_moved_collections.append(moved_points[1])
+            geom.z_moved_collections.append(moved_points[2])
 
-        x_moved_ctrl_collections.append(moved_ctrl_points[0])
-        y_moved_ctrl_collections.append(moved_ctrl_points[1])
-        z_moved_ctrl_collections.append(moved_ctrl_points[2])
-    return x_collections, y_collections, \
-        x_moved_collections ,y_moved_collections, z_moved_collections, \
-            ctrl_x_collections, ctrl_y_collections, \
-            toroidal_geo.toroidal_coordinates, toroidal_geo.toroidal_tangents, \
-            x, y, z, ctrl_x, ctrl_y, ctrl_z,\
+            moved_ctrl_points = rotate_poloidal_section([curvegeompol.ctrl_xp, curvegeompol.ctrl_yp,
+                                                     [0.0]*len(curvegeompol.ctrl_xp)],
+                                               toroid_geom.toroidal_coordinates[i],
+                                               toroid_geom.toroidal_tangents[i], 0.0)
+            x_moved_ctrl_collections.append(moved_ctrl_points[0])
+            y_moved_ctrl_collections.append(moved_ctrl_points[1])
+            z_moved_ctrl_collections.append(moved_ctrl_points[2])
+    return geom.x_collections, geom.y_collections, \
+            geom.x_moved_collections ,geom.y_moved_collections, geom.z_moved_collections, \
+            geom.ctrl_x_collections, geom.ctrl_y_collections, \
+            toroidal_geom.toroidal_coordinates, toroidal_geom.toroidal_tangents, \
+            *curvegeom.curve, *curvegeom.ctrl, \
             x_moved_ctrl_collections, y_moved_ctrl_collections, z_moved_ctrl_collections
 
 def geometry_construct(toroidal_sections, poloidal_sections, mode, init=False, plot=False, filename=None):
@@ -182,28 +224,36 @@ def geometry_construct(toroidal_sections, poloidal_sections, mode, init=False, p
     mode: An integer indicating the mode of operation (0 for reading from files, 
             1 for using provided data).
     """
-    x_collections, y_collections, \
-        x_moved_collections ,y_moved_collections, z_moved_collections, \
-            ctrl_x_collections, ctrl_y_collections, \
-            toroidal_coordinates, toroidal_tangents, \
-                 x, y, z, ctrl_x, ctrl_y, ctrl_z, \
-                    x_moved_ctrl_collections, y_moved_ctrl_collections, z_moved_ctrl_collections  = geometry_preprocess(toroidal_sections,
-                                                                       poloidal_sections,
-                                                                       mode)
-
-    elongation_list, file_list, guide_vane_collections = geometry_elongation(poloidal_sections, \
-                                                                [x_moved_collections,
-                                                                y_moved_collections,
-                                                                z_moved_collections], \
-                                                                toroidal_tangents, 
-                                                                toroidal_coordinates, plot=True)
+    geom = GeometryData([], [], [], [], [], [], [])
+    toroidgeom = ToroidalGeometry([],[])
+    poloidgeom = PoloidalGeometry([],[],[],[],[],[])
+    geom.x_collections, geom.y_collections, \
+        geom.x_moved_collections ,geom.y_moved_collections, geom.z_moved_collections, \
+            geom.ctrl_x_collections, geom.ctrl_y_collections, \
+            toroidgeom.toroidal_coordinates, toroidgeom.toroidal_tangents, \
+                 poloidgeom.x, poloidgeom.y, poloidgeom.z, \
+                    poloidgeom.ctrl_x, poloidgeom.ctrl_y, poloidgeom.ctrl_z,\
+                    x_moved_ctrl_collections, y_moved_ctrl_collections, z_moved_ctrl_collections\
+                          = geometry_preprocess(toroidal_sections,
+                                                poloidal_sections)
+    elongation_list, file_list, guide_vane_collections = geometry_elongation(poloidal_sections,
+                                                                [geom.x_moved_collections,
+                                                                geom.y_moved_collections,
+                                                                geom.z_moved_collections],
+                                                                toroidgeom.toroidal_tangents,
+                                                                toroidgeom.toroidal_coordinates,
+                                                                plot=True)
+    
     if plot:
         # merge_stls(file_list, "./typethree.stl")
-        plot_typethree([x_collections, y_collections], [ctrl_x_collections, ctrl_y_collections],
-                  [x, y, z], [ctrl_x, ctrl_y, ctrl_z],
-                  [x_moved_collections, y_moved_collections, z_moved_collections],
-                  [x_moved_ctrl_collections, y_moved_ctrl_collections, z_moved_ctrl_collections],
-                  toroidal_coordinates,
+        plot_typethree([geom.x_collections, geom.y_collections],
+                        [geom.ctrl_x_collections, geom.ctrl_y_collections],
+                        [poloidgeom.x, poloidgeom.y, poloidgeom.z],
+                        [poloidgeom.ctrl_x, poloidgeom.ctrl_y, poloidgeom.ctrl_z],
+                        [geom.x_moved_collections, geom.y_moved_collections,
+                         geom.z_moved_collections], 
+                         [x_moved_ctrl_collections, y_moved_ctrl_collections, z_moved_ctrl_collections],
+                         toroidgeom.toroidal_coordinates,
                   guide_vane_collections, "./typethree.stl",
                   filename=filename)
     return 0
