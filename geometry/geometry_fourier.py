@@ -27,9 +27,15 @@ def linearize_data(toroidal_file):
     weights = np.array(toroidal_prop.get("weights"), dtype=np.float64)
     phi_to_u = f_to_u(phi)
 
-    if cfg.STUDY_NAME == "Type1" or cfg.STUDY_NAME == "Type3":
+    if cfg.STUDY_NAME == "Type1":
         sections = np.array(toroidal_prop.get("sections"), dtype=np.float64)
         combined = np.concatenate([phi_to_u, theta, radius, weights, sections])
+    elif cfg.STUDY_NAME == "Type3":
+        sections = np.array(toroidal_prop.get("sections"), dtype=np.float64)
+        deltas = np.zeros(len(sections))
+        # deltas = np.diff(np.r_[sections, sections[0] + len(sections)])
+        combined = np.concatenate([phi_to_u, theta, radius, weights, deltas])
+
     elif cfg.STUDY_NAME == "Type2":
         N = np.array([twist_prop.get("N")], dtype=np.float64)
         A = np.array([twist_prop.get("A")], dtype=np.float64)
@@ -175,7 +181,7 @@ def delinearize_data(x0):
     phi = np.degrees(u_to_f(phi_to_u, 0))
     theta = np.degrees(theta0 + theta_to_x * theta_delta)  # direct decoding for theta
     
-    if cfg.STUDY_NAME == "Type1" or cfg.STUDY_NAME == "Type3":
+    if cfg.STUDY_NAME == "Type1":
         sections = x0[idx : idx + N_t]
         toroidal_sections = {
         "N_t": N_t,
@@ -184,7 +190,18 @@ def delinearize_data(x0):
         "radius": radius,
         "weights": weights,
         "degree": 3,
-        "sections": sections
+        "deltas": sections
+        }
+    elif cfg.STUDY_NAME == "Type3":
+        deltas = x0[idx : idx + N_t]
+        toroidal_sections = {
+        "N_t": N_t,
+        "phi": phi,
+        "theta": theta,
+        "radius": radius,
+        "weights": weights,
+        "degree": 3,
+        "deltas": deltas
         }
     elif cfg.STUDY_NAME == "Type2":
         sections = np.array(np.linspace(start=0.0, stop = 1.0 - (1 / cfg.NUM_T), num=cfg.NUM_T), dtype=np.float64)

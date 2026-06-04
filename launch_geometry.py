@@ -45,14 +45,22 @@ def geometry_preprocess(toroidal_sections, poloidal_sections):
     This function prepares the data for further processing and optimization.
     """
     geom = GeometryData([], [], [], [], [], [], [])
+    sections = []
     curvegeom = build_sketch_sector_toroidal(toroidal_sections['theta'],
                                             toroidal_sections['phi'],
                                             toroidal_sections['radius'],
                                             toroidal_sections['degree'],
                                             toroidal_sections['weights'],
                                             cfg.NUM_T)
-
-    toroidal_geom = get_toroidal_coordinates_tangent(toroidal_sections['sections'],
+    if cfg.STUDY_NAME == 'Type3':
+        z = toroidal_sections['deltas']
+        expz = np.exp(z - np.max(z))
+        deltas = expz / expz.sum()
+        sections = np.cumsum(deltas)
+        sections = np.concatenate([[0], sections[:-1]])
+    else:
+        sections = toroidal_sections['sections']
+    toroidal_geom = get_toroidal_coordinates_tangent(sections,
                                                     curvegeom.curve)
     if cfg.STUDY_NAME == "Type2":
         twist_params = (
@@ -93,28 +101,28 @@ def geometry_preprocess(toroidal_sections, poloidal_sections):
         radius_nurbs = []
         psi_points = []
         radius_points = []
-        u_vals = np.linspace(0, 1, cfg.NUM_T)
+        u_vals = np.linspace(0.0, 1.0, cfg.NUM_T)
         for i in range(len(psi_collect[0])):
             psi_0 = [p[i] / 360.0 for p in psi_collect]
             radius_0 = [r[i] for r in radius_collect]
-            psi_nurbs.append([[toroidal_sections['sections'][0], psi_0[0]],
-                            [toroidal_sections['sections'][1], psi_0[1]],
-                            [toroidal_sections['sections'][2], psi_0[2]],
-                            [toroidal_sections['sections'][3], psi_0[3]],
-                            [1.0, 1.0]])
-            radius_nurbs.append([[toroidal_sections['sections'][0], radius_0[0]],
-                            [toroidal_sections['sections'][1], radius_0[1]],
-                            [toroidal_sections['sections'][2], radius_0[2]],
-                            [toroidal_sections['sections'][3], radius_0[3]],
-                            [1.0, 1.0]])
+            psi_nurbs.append([[sections[0], psi_0[0]],
+                            [sections[1], psi_0[1]],
+                            [sections[2], psi_0[2]],
+                            [sections[3], psi_0[3]],
+                            [1.0, 1.0 + psi_0[0]]])
+            radius_nurbs.append([[sections[0], radius_0[0]],
+                            [sections[1], radius_0[1]],
+                            [sections[2], radius_0[2]],
+                            [sections[3], radius_0[3]],
+                            [1.0, radius_0[0]]])
             psi_points.append(get_nurbs_y(u_vals, 
                         psi_nurbs[i], 
                         [1.0, 5.0, 5.0, 5.0, 1.0],
-                        1))
+                        2)[:-1])
             radius_points.append(get_nurbs_y(u_vals, 
                         radius_nurbs[i], 
                         [1.0, 5.0, 5.0, 5.0, 1.0],
-                        1))
+                        2))
         toroid_geom = get_toroidal_coordinates_tangent(u_vals,
                                                     curvegeom.curve)
         for k in range(cfg.NUM_T):

@@ -388,19 +388,30 @@ def get_nurbs_y(x_targets, ctrlpts, weights, degree):
     x1 = fx(1.0, ctrlpts, weights, degree)
 
     x_min, x_max = min(x0, x1), max(x0, x1)
-
+    us = np.linspace(0, 1, 200)
+    xs = np.array([fx(u, ctrlpts, weights, degree) for u in us])
     for xt in x_targets:
+        f = xs - xt
+        idx = np.where(f[:-1] * f[1:] <= 0)[0]
 
-        if not (x_min <= xt <= x_max):
-            raise ValueError(
-                f"xt={xt} outside x(u) range [{x_min}, {x_max}]"
-            )
+        if len(idx) == 0:
+            imin = np.argmin(xs)
+            print("xmin =", xs[imin])
+            print("u =", us[imin])
+            for u, x in zip(us, xs):
+                print(f"{u:.3f} {x:.6f}")
+            print(ctrlpts)
+            print(weights)
+            print(degree)
+            raise ValueError(f"No root found for xt={xt}")
+
+        i = idx[0]
 
         u_star = brentq(
             lambda u: fx(u, ctrlpts, weights, degree) - xt,
-            0.0, 1.0
+            us[i],
+            us[i+1]
         )
-
         y_out.append(fy(u_star, ctrlpts, weights, degree))
     y_out.append(y_out[0])
     return np.array(y_out)
