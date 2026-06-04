@@ -6,6 +6,7 @@ and generating knot vectors for B-splines.
 """
 import math
 import numpy as np
+from scipy.optimize import brentq
 
 def cox_de_boor(u, i, p, knot):
     """
@@ -42,7 +43,10 @@ def generate_clamped_knots(n_ctrl, degree):
 
 def N(i, p, u, knots):
     if p == 0:
-        return 1.0 if knots[i] <= u < knots[i+1] else 0.0
+        if (knots[i] <= u < knots[i+1]) or (
+            np.isclose(u, knots[-1]) and knots[i+1] == knots[-1]):
+            return 1.0
+        return 0.0
     denom1 = knots[i+p] - knots[i]
     denom2 = knots[i+p+1] - knots[i+1]
     term1 = 0.0
@@ -54,18 +58,52 @@ def N(i, p, u, knots):
     return term1 + term2
 
 def nurbs_gen(ctrlpts, weights, degree, u):
+    if np.isclose(u, 0.0):
+        return np.array(ctrlpts[0])
+
+    if np.isclose(u, 1.0):
+        return np.array(ctrlpts[-1])
     n = len(ctrlpts) - 1
-    knots = np.concatenate((
-    np.zeros(degree),
-    np.linspace(0, 1, n - degree + 2),
-    np.ones(degree)
-    ))
+    n = len(ctrlpts) - 1
+
+    p = degree
+    knots = np.array(
+        [0]*(p+1) +
+        list(np.linspace(0, 1, n - p + 2)[1:-1]) +
+        [1]*(p+1)
+    )
     numerator = np.zeros(2)
     denominator = 0.0
     for i in range(n+1):
         Ni = N(i, degree, u, knots)
         numerator += Ni * weights[i] * np.array(ctrlpts[i])
         denominator += Ni * weights[i]
+    return numerator / (denominator + 1e-12)
+
+def nurbs_gen_periodic(ctrlpts, weights, degree, u):
+    """
+    Generate nurbs curve periodic with C1
+    """
+    ctrlpts = np.asarray(ctrlpts)
+    weights = np.asarray(weights)
+    # wrap first p control points
+    ctrlpts_ext = np.vstack([ctrlpts, ctrlpts[:degree]])
+    weights_ext = np.concatenate([weights, weights[:degree]])
+    m = len(ctrlpts_ext)
+
+    # periodic uniform knot vector
+    knots = np.arange(m + degree + 1, dtype=float)
+
+    # map u∈[0,1] to valid parameter range
+    u = degree + u * (len(ctrlpts))
+    numerator = np.zeros(2)
+    denominator = 0.0
+
+    for i in range(m):
+        Ni = N(i, degree, u, knots)
+        numerator += Ni * weights_ext[i] * ctrlpts_ext[i]
+        denominator += Ni * weights_ext[i]
+
     return numerator / (denominator + 1e-12)
 
 def nurbs_curve(ctrl_pts, weights, degree, num_points=100):
@@ -333,3 +371,47 @@ def rotate_poloidal_section(points, center, vector, twist = 0):
     rotated = rval @ translated
     return rotated + center[:, None]
 
+def curve(u, ctrlpts, weights, degree):
+    return nurbs_gen(ctrlpts, weights, degree, u)
+
+def fx(u, ctrlpts, weights, degree):
+    return curve(u, ctrlpts, weights, degree)[0]
+
+def fy(u, ctrlpts, weights, degree):
+    return curve(u, ctrlpts, weights, degree)[1]
+
+
+def get_nurbs_y(x_targets, ctrlpts, weights, degree):
+    y_out = []
+
+    x0 = fx(0.0, ctrlpts, weights, degree)
+    x1 = fx(1.0, ctrlpts, weights, degree)
+
+    x_min, x_max = min(x0, x1), max(x0, x1)
+    us = np.linspace(0, 1, 200)
+    xs = np.array([fx(u, ctrlpts, weights, degree) for u in us])
+    for xt in x_targets:
+        f = xs - xt
+        idx = np.where(f[:-1] * f[1:] <= 0)[0]
+
+        if len(idx) == 0:
+            imin = np.argmin(xs)
+            print("xmin =", xs[imin])
+            print("u =", us[imin])
+            for u, x in zip(us, xs):
+                print(f"{u:.3f} {x:.6f}")
+            print(ctrlpts)
+            print(weights)
+            print(degree)
+            raise ValueError(f"No root found for xt={xt}")
+
+        i = idx[0]
+
+        u_star = brentq(
+            lambda u: fx(u, ctrlpts, weights, degree) - xt,
+            us[i],
+            us[i+1]
+        )
+        y_out.append(fy(u_star, ctrlpts, weights, degree))
+    y_out.append(y_out[0])
+    return np.array(y_out)
