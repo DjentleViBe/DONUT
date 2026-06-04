@@ -7,10 +7,11 @@ import config as cfg
 from file_operations import write_to_csv
 from geometry.geometry_process import geometry_process_optimization, geometry_process_constraint
 from geometry.geometry_writer import write_geometry_parameters_to_file
+from geometry.geometry_fourier import genetic_data
 from launch_geometry import geometry_construct
 import geometry.geometry_process as gp
 import geometry.geometry_fourier as gf
-
+from classes_geometry import DonutGenetic 
 ITERATION = 0  # external counter
 elongation_current_iteration = []
 triangularity_current_iteration = []
@@ -146,3 +147,25 @@ def genetic_init(toroidal_sections, poloidal_sections, plot):
                                                             "_" + cfg.METHOD +
                                                             "_initial_geometry")
     return 0
+
+def mutate(self, sigma=0.05):
+    self.phi_collect = [min(1, max(0, x + random.gauss(0, sigma))) for x in self.phi_collect]
+    self.theta_collect = sorted([min(1, max(0, x + random.gauss(0, sigma))) for x in self.theta_collect])
+    self.toroid_radius_collect = [min(1, max(0, x + random.gauss(0, sigma))) for x in self.toroid_radius_collect]
+    self.sections_collect = sorted([min(1, max(0, x + random.gauss(0, sigma))) for x in self.sections_collect])
+
+    self.ncollect = min(1, max(0, self.ncollect + random.gauss(0, sigma)))
+    self.acollect = min(1, max(0, self.acollect + random.gauss(0, sigma)))
+    self.kcollect = min(1, max(0, self.kcollect + random.gauss(0, sigma)))
+
+def genetic_block(pop_size):
+    population = [genetic_data(4) for _ in range(pop_size)]
+    fitness = []
+    for toroid, poloid, do_gen in population:
+        genetic_init(toroid, poloid, plot=False)
+        print(gp.TRIAL_ELONGATION, gp.CURRENT_TRIANGULARITY, gp.CURRENT_AR)
+        fitness.append((
+            gp.TRIAL_ELONGATION,
+            gp.CURRENT_TRIANGULARITY,
+            gp.CURRENT_AR
+        ))
