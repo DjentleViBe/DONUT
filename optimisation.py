@@ -170,11 +170,7 @@ def mutate(genome, mutation_rate=0.1, sigma=0.05):
 
 def evaluate_genome(do_gen):
     toroids, poloids = gf.decode_genome(do_gen, 4)
-    genetic_init(
-        toroids,
-        poloids,
-        plot=False
-    )
+    genetic_init(toroids, poloids, plot=False)
 
     score = genetic_objective(
         gp.TRIAL_ELONGATION,
@@ -184,7 +180,7 @@ def evaluate_genome(do_gen):
     return score
 
 def genetic_block(pop_size = 50,
-                  generations=100,
+                  generations=10,
                   elite_fraction=0.1):
     # --------------------------------------------------
     # Initial population
@@ -192,6 +188,9 @@ def genetic_block(pop_size = 50,
     population = [genetic_data(4) for _ in range(pop_size)]
     best_genome = None
     best_score = np.inf
+    best_genome_collect = []
+    generation_best_score_collect = []
+    best_score_collect = []
     # --------------------------------------------------
     # Evolution loop
     # --------------------------------------------------
@@ -214,11 +213,14 @@ def genetic_block(pop_size = 50,
         if generation_best_score < best_score:
             best_score = generation_best_score
             best_genome = generation_best_genome.copy()
+        best_genome_collect.append(best_genome)
         print(
             f"Gen {generation:4d} | "
             f"Best = {generation_best_score:.6f} | "
             f"Global Best = {best_score:.6f}"
         )
+        generation_best_score_collect.append(generation_best_score)
+        best_score_collect.append(best_score)
         # ----------------------------------------------
         # Elitism
         # ----------------------------------------------
@@ -234,13 +236,14 @@ def genetic_block(pop_size = 50,
             child = mutate(child, mutation_rate=0.1, sigma=0.05)
             new_population.append(child)
         population = new_population
+    write_to_csv(*np.array(best_genome_collect).T, 
+                 filename=f"./results/{cfg.STUDY_NAME}_{cfg.METHOD}.csv")
+    write_to_csv(generation_best_score_collect, best_score_collect, 
+                 filename=f"./results/{cfg.STUDY_NAME}_{cfg.METHOD}_history.csv")
     # --------------------------------------------------
     # Decode final best solution
     # --------------------------------------------------
-    best_toroids, best_poloids = gf.decode_genome(
-        best_genome,
-        4
-    )
+    best_toroids, best_poloids = gf.decode_genome(best_genome, 4)
     return (
         best_genome,
         best_score,
