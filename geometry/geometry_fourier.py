@@ -236,38 +236,49 @@ def genetic_data(N_s = 4,
                  N_limits = [1, 6],
                  A_limits = [0.1, 1],
                  k_limits = [1, 3]):
-    do_gen = DonutGenetic([], [], [], [], 0.0, 0.0, 0.0)
     weights = np.ones(N_s)
     poloidal_sections = []
 
-    do_gen.phi_collect = [random.uniform(0, 1) for _ in range(N_s)]
-    do_gen.theta_collect = [0.0] + [random.uniform(0, 1) for _ in range(N_s - 1)]
-    do_gen.theta_collect.sort()
-    do_gen.toroid_radius_collect = [random.uniform(0, 1) for _ in range(N_s)]
-    do_gen.sections_collect = [0.0] + [random.uniform(0, 1) for _ in range(N_s - 1)]
-    do_gen.sections_collect.sort()
-    do_gen.ncollect = random.uniform(0, 1)
-    do_gen.acollect = random.uniform(0, 1)
-    do_gen.kcollect = random.uniform(0, 1)
+    phi_collect = np.random.uniform(0, 1, N_s)
+    toroid_radius_collect = np.random.uniform(0, 1, N_s)
+    poloid_radius_collect = np.random.uniform(0, 1, N_s)
+    ncollect = np.random.uniform(0, 1, 1)
+    acollect = np.random.uniform(0, 1, 1)
+    kcollect = np.random.uniform(0, 1, 1)
 
-    do_gen.psi_collect = [0.0] + [random.uniform(0, 1) for _ in range(N_s - 1)]
-    do_gen.psi_collect.sort()
-    do_gen.poloid_radius_collect = [random.uniform(0.0, 1) for _ in range(N_s)]
-    phi_limits[0] = 90 + phi_limits[0]
-    phi_limits[1] = 90 + phi_limits[1]
-    phi_actual = [phi_limits[0] + x * (phi_limits[1] - phi_limits[0]) for x in do_gen.phi_collect]
-    theta_actual = [x * (360) for x in do_gen.theta_collect]
-    N_actual = int(N_limits[0] + do_gen.ncollect * (N_limits[1] - N_limits[0]))
-    A_actual = A_limits[0] + do_gen.acollect * (A_limits[1] - A_limits[0])
-    k_actual = k_limits[0] + do_gen.kcollect * (k_limits[1] - k_limits[0])
+    theta_collect = np.random.uniform(0, 1, N_s)
+    psi_collect = np.random.uniform(0, 1, N_s)
 
-    psi_actual = [x * (360) for x in do_gen.psi_collect]
+    theta_collect = theta_collect / theta_collect.sum()
+    psi_collect = psi_collect / psi_collect.sum()
+    do_gen = np.concatenate([toroid_radius_collect,
+                            poloid_radius_collect,
+                            phi_collect,
+                            theta_collect, 
+                            psi_collect,
+                            ncollect,
+                            acollect,
+                            kcollect,
+                            ])
+    N_actual = int(N_limits[0] + ncollect[0] * (N_limits[1] - N_limits[0]))
+    A_actual = A_limits[0] + acollect[0] * (A_limits[1] - A_limits[0])
+    k_actual = k_limits[0] + kcollect[0] * (k_limits[1] - k_limits[0])
     sections = np.array(np.linspace(start=0.0, stop = 1.0 - (1 / cfg.NUM_T), num=cfg.NUM_T), dtype=np.float64)
+    theta_actual = np.concatenate((
+    [0.0],
+    np.cumsum(theta_collect) * 360.0
+    ))
+    psi_actual = np.concatenate((
+        [0.0],
+        np.cumsum(psi_collect) * 360.0
+    ))
+    phi_actual = [90 + phi_limits[0] + x * (phi_limits[1] - phi_limits[0]) for x in phi_collect]
+    """
     toroidal_sections = {
         "N_t": N_s,
         "phi": phi_actual,
-        "theta": theta_actual,
-        "radius": do_gen.toroid_radius_collect,
+        "theta": theta_actual[:-1],
+        "radius": toroid_radius_collect,
         "weights": weights,
         "degree": 3,
         "sections": sections,
@@ -279,10 +290,85 @@ def genetic_data(N_s = 4,
     for i in range(N_t):
         poloidal_sections.append({
                 "N_s": N_s,
-                "psi": psi_actual,
-                "radius": do_gen.poloid_radius_collect,
+                "psi": psi_actual[:-1],
+                "radius": poloid_radius_collect,
                 "weights": weights,
                 "degree": 3
             })
+    """
+    return do_gen
+
+def decode_genome(do_gen, N_s,
+                  phi_limits = [-30, 30], 
+                 N_limits = [1, 6],
+                 A_limits = [0.1, 1],
+                 k_limits = [1, 3]):
+    poloidal_sections = []
+    weights = np.ones(N_s)
+    idx = 0
+    toroid_radius_collect = do_gen[idx : idx + N_s]
+    idx += N_s
+
+    poloid_radius_collect = do_gen[idx : idx + N_s]
+    idx += N_s
     
-    return toroidal_sections, poloidal_sections, do_gen
+    phi_collect = do_gen[idx : idx + N_s]
+    idx += N_s
+    
+    theta_collect= do_gen[idx : idx + N_s]
+    idx += N_s
+    
+    psi_collect = do_gen[idx : idx + N_s]
+    idx += N_s
+                            
+    ncollect = do_gen[idx : idx + 1]
+    idx += 1
+    
+    acollect = do_gen[idx : idx + 1]
+    idx += 1
+    
+    kcollect= do_gen[idx : idx + 1]
+
+    N_actual = int(N_limits[0] + ncollect[0] * (N_limits[1] - N_limits[0]))
+    A_actual = A_limits[0] + acollect[0] * (A_limits[1] - A_limits[0])
+    k_actual = k_limits[0] + kcollect[0] * (k_limits[1] - k_limits[0])
+    sections = np.array(np.linspace(start=0.0, stop = 1.0 - (1 / cfg.NUM_T), num=cfg.NUM_T), dtype=np.float64)
+    theta_actual = np.concatenate((
+    [0.0],
+    np.cumsum(theta_collect) * 360.0
+    ))
+
+    psi_actual = np.concatenate((
+        [0.0],
+        np.cumsum(psi_collect) * 360.0
+    ))
+
+    phi_actual = (
+        90.0
+        + phi_limits[0]
+        + phi_collect * (phi_limits[1] - phi_limits[0])
+    )
+    toroidal_sections = {
+        "N_t": N_s,
+        "phi": phi_actual,
+        "theta": theta_actual[:-1],
+        "radius": toroid_radius_collect,
+        "weights": weights,
+        "degree": 3,
+        "sections": sections,
+        "N" : N_actual,
+        "A" : A_actual,
+        "k" : k_actual
+        }
+
+    for i in range(cfg.NUM_T):
+        poloidal_sections.append({
+                    "N_s": N_s,
+                    "psi": psi_actual[:-1],
+                    "radius": poloid_radius_collect,
+                    "weights": weights,
+                    "degree": 3
+                })
+    
+    return toroidal_sections, poloidal_sections
+        
