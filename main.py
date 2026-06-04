@@ -5,7 +5,6 @@ building the sketches of the sectors, and plotting the poloidal cross
 section of the geometry.
 """
 import argparse
-import config as cfg
 from optimisation import geometry_init, optimisation_block, genetic_block
 
 if __name__ == "__main__":

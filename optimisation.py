@@ -1,6 +1,7 @@
 """
 Optimisation logic for DONUT
 """
+import random
 import numpy as np
 from scipy.optimize import minimize, NonlinearConstraint
 import config as cfg
@@ -11,7 +12,6 @@ from geometry.geometry_fourier import genetic_data
 from launch_geometry import geometry_construct
 import geometry.geometry_process as gp
 import geometry.geometry_fourier as gf
-import random
 
 ITERATION = 0  # external counter
 elongation_current_iteration = []
@@ -150,18 +150,30 @@ def genetic_init(toroidal_sections, poloidal_sections, plot):
     return 0
 
 def genetic_objective(te, ct, ar):
+    """
+    Objective function for GA
+    """
     return te + ct + ar
 
 def tournament_selection(fitness, k=3):
+    """
+    Tournament selection process
+    """
     candidates = random.sample(fitness, k)
     candidates.sort(key=lambda x: x[0])
     return candidates[0][1]
 
 def crossover(p1, p2):
+    """
+    Cross operation
+    """
     cut = np.random.randint(1, len(p1))
     return np.concatenate([p1[:cut], p2[cut:]])
 
 def mutate(genome, mutation_rate=0.1, sigma=0.05):
+    """
+    Mutation operation
+    """
     child = genome.copy()
     mask = np.random.rand(len(child)) < mutation_rate
     child[mask] += np.random.normal(loc=0.0, scale=sigma,size=np.sum(mask))
@@ -169,6 +181,9 @@ def mutate(genome, mutation_rate=0.1, sigma=0.05):
     return child
 
 def evaluate_genome(do_gen):
+    """
+    Genome evaluation function
+    """
     toroids, poloids = gf.decode_genome(do_gen, 4)
     genetic_init(toroids, poloids, plot=False)
 
@@ -179,9 +194,12 @@ def evaluate_genome(do_gen):
     )
     return score
 
-def genetic_block(pop_size = 50,
-                  generations=10,
-                  elite_fraction=0.1):
+def genetic_block(pop_size = cfg.POP_SIZE,
+                  generations = cfg.GENERATIONS,
+                  elite_fraction = cfg.ELITE_FRACTION):
+    """
+    Main block for GA
+    """
     # --------------------------------------------------
     # Initial population
     # --------------------------------------------------
@@ -236,9 +254,9 @@ def genetic_block(pop_size = 50,
             child = mutate(child, mutation_rate=0.1, sigma=0.05)
             new_population.append(child)
         population = new_population
-    write_to_csv(*np.array(best_genome_collect).T, 
+    write_to_csv(*np.array(best_genome_collect).T,
                  filename=f"./results/{cfg.STUDY_NAME}_{cfg.METHOD}.csv")
-    write_to_csv(generation_best_score_collect, best_score_collect, 
+    write_to_csv(generation_best_score_collect, best_score_collect,
                  filename=f"./results/{cfg.STUDY_NAME}_{cfg.METHOD}_history.csv")
     # --------------------------------------------------
     # Decode final best solution
