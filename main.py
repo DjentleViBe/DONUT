@@ -6,12 +6,11 @@ section of the geometry.
 """
 import argparse
 import config as cfg
-import geometry.geometry_process as gp
-from geometry.geometry_fourier import genetic_data
 from file_operations import write_to_csv
 from optimisation import geometry_init, genetic_init, optimisation_block
+import geometry.geometry_process as gp
+from geometry.geometry_fourier import genetic_data
 from geometry.geometry_writer import write_geometry_parameters_to_file
-import geometry.geometry_fourier as gf
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="DONUT")
@@ -28,4 +27,4 @@ if __name__ == "__main__":
         print(gp.TRIAL_ELONGATION, gp.CURRENT_TRIANGULARITY, gp.CURRENT_AR)
     else:
         x0, data_format = geometry_init(plot=True)
-        optimisation_block(x0, data_format)
+        optimisation_block(x0)

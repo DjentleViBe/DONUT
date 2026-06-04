@@ -1,8 +1,11 @@
+"""
+Optimisation logic for DONUT
+"""
 import numpy as np
-import config as cfg
-from geometry.geometry_process import geometry_process_optimization, geometry_process_constraint
 from scipy.optimize import minimize, NonlinearConstraint
+import config as cfg
 from file_operations import write_to_csv
+from geometry.geometry_process import geometry_process_optimization, geometry_process_constraint
 from geometry.geometry_writer import write_geometry_parameters_to_file
 from launch_geometry import geometry_construct
 import geometry.geometry_process as gp
@@ -32,8 +35,8 @@ def callback(*args):
           f"Triangularity = {gp.CURRENT_TRIANGULARITY:.4f},"
           f"Aspect Ratio = {gp.CURRENT_AR:.4f},"
           f"xk norm = {np.linalg.norm(xk):.4f}")
-    
-def optimisation_block(x0, data_format):
+
+def optimisation_block(x0):
     """
     main optimisation block for gradient based methods"""
     print(f"Running {cfg.STUDY_NAME} optimization...")
@@ -106,7 +109,7 @@ def optimisation_block(x0, data_format):
     write_to_csv(elongation_best_iteration, triangularity_best_iteration,
                 ar_best_iteration, filename="./results/" + cfg.STUDY_NAME +
                     "_" + cfg.METHOD +"_best_iteration.csv")
-    
+
 def geometry_init(plot):
     """
     Initialise geoemtry
