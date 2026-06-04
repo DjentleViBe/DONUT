@@ -10,7 +10,7 @@ STUDY_NAME = "Type2"
 # 'Nelder-Mead'
 # 'L-BFGS-B'
 # 'trust-constr'
-METHOD = 'COBYLA'
+METHOD = "genetic"
 K_SMOOTH = 20.0
 PHI_T = 2
 THETA_T = 2
@@ -30,6 +30,15 @@ FDRS = 5e-2
 NUM_P = 30
 NUM_T = 100
 NUM_GV = 100
+# GA params
+POP_SIZE = 50
+GENERATIONS = 10
+ELITE_FRACTION = 0.1
+NUM_S = 4
+PHI_LIMITS= [-30, 30]
+N_LIMITS = [1, 6]
+A_LIMITS = [0.1, 1]
+K_LIMITS = [1, 3]
 # plotting parameters
 color = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728",
           "#9467bd", "#8c564b", "#e377c2", "#7f7f7f",
