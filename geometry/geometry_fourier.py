@@ -6,7 +6,7 @@ from geometry.geometry_constraints import f_to_u, u_to_f
 from helper.fourier_helper import fourier_encode, fourier_decode
 import geometry.geometry_process as gp
 import random
-from classes_geometry import DONUT_Genetic
+from classes_geometry import DonutGenetic
 
 def linearize_data(toroidal_file):
     """
@@ -236,7 +236,7 @@ def genetic_data(N_s = 4,
                  N_limits = [1, 6],
                  A_limits = [0.1, 1],
                  k_limits = [1, 3]):
-    do_gen = DONUT_Genetic([], [], [], [], 0.0, 0.0, 0.0)
+    do_gen = DonutGenetic([], [], [], [], 0.0, 0.0, 0.0)
     weights = np.ones(N_s)
     poloidal_sections = []
 
@@ -246,9 +246,9 @@ def genetic_data(N_s = 4,
     do_gen.toroid_radius_collect = [random.uniform(0, 1) for _ in range(N_s)]
     do_gen.sections_collect = [0.0] + [random.uniform(0, 1) for _ in range(N_s - 1)]
     do_gen.sections_collect.sort()
-    do_gen.N_collect = random.uniform(0, 1)
-    do_gen.A_collect = random.uniform(0, 1)
-    do_gen.k_collect = random.uniform(0, 1)
+    do_gen.ncollect = random.uniform(0, 1)
+    do_gen.acollect = random.uniform(0, 1)
+    do_gen.kcollect = random.uniform(0, 1)
 
     do_gen.psi_collect = [0.0] + [random.uniform(0, 1) for _ in range(N_s - 1)]
     do_gen.psi_collect.sort()
@@ -257,9 +257,9 @@ def genetic_data(N_s = 4,
     phi_limits[1] = 90 + phi_limits[1]
     phi_actual = [phi_limits[0] + x * (phi_limits[1] - phi_limits[0]) for x in do_gen.phi_collect]
     theta_actual = [x * (360) for x in do_gen.theta_collect]
-    N_actual = int(N_limits[0] + do_gen.N_collect * (N_limits[1] - N_limits[0]))
-    A_actual = A_limits[0] + do_gen.A_collect * (A_limits[1] - A_limits[0])
-    k_actual = k_limits[0] + do_gen.k_collect * (k_limits[1] - k_limits[0])
+    N_actual = int(N_limits[0] + do_gen.ncollect * (N_limits[1] - N_limits[0]))
+    A_actual = A_limits[0] + do_gen.acollect * (A_limits[1] - A_limits[0])
+    k_actual = k_limits[0] + do_gen.kcollect * (k_limits[1] - k_limits[0])
 
     psi_actual = [x * (360) for x in do_gen.psi_collect]
     sections = np.array(np.linspace(start=0.0, stop = 1.0 - (1 / cfg.NUM_T), num=cfg.NUM_T), dtype=np.float64)
