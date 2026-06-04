@@ -262,6 +262,18 @@ def genetic_block(pop_size = cfg.POP_SIZE,
     # Decode final best solution
     # --------------------------------------------------
     best_toroids, best_poloids = gf.decode_genome(best_genome, 4)
+    write_geometry_parameters_to_file(best_toroids, best_poloids,
+                                         "./results/"+ cfg.STUDY_NAME
+                                        + "_" + cfg.METHOD + "_initial_geometry.json")
+
+    gp.TRIAL_ELONGATION, gp.CURRENT_TRIANGULARITY, gp.CURRENT_AR = geometry_construct(
+                                                            best_toroids,
+                                                            best_poloids,
+                                                            init=False, plot=True,
+                                                            filename=cfg.STUDY_NAME +
+                                                            "_" + cfg.METHOD +
+                                                            "_final_geometry")
+
     return (
         best_genome,
         best_score,

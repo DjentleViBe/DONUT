@@ -39,6 +39,8 @@ PHI_LIMITS= [-30, 30]
 N_LIMITS = [1, 6]
 A_LIMITS = [0.1, 1]
 K_LIMITS = [1, 3]
+RADIUS_P = [0.01, 0.3]
+RADIUS_T = [0.8, 1.0]
 # plotting parameters
 color = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728",
           "#9467bd", "#8c564b", "#e377c2", "#7f7f7f",
