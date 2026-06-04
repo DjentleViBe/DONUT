@@ -286,7 +286,7 @@ with open(filename, "r", encoding="utf-8") as f:
 plt.cla()
 plt.close()
 u_vals = np.linspace(0, 1, 200)
-fig, ((ax_1, ax_2), (ax_3, ax_4)) = plt.subplots(2, 2, figsize=(12, 8))
+fig, (ax_3, ax_4) = plt.subplots(1, 2, figsize=(8, 4))
 x = np.linspace(0, 1, 4)
 psi_nurbs = []
 radius_nurbs = []
@@ -300,9 +300,9 @@ for i in range(len(psi[0])):
                       [phi[0][1],psi_0[1]],
                            [phi[0][2],psi_0[2]],
                            [phi[0][3],psi_0[3]],
-                           [1.0,psi_0[0]]])
+                           [1.0,1.0 + psi_0[0]]])
 
-    curve_points = np.array([nurbs_gen_periodic(psi_nurbs[i], 
+    curve_points = np.array([nurbs_gen(psi_nurbs[i], 
                             [1.0, 5.0, 5.0, 5.0, 1.0], 2, u) for u in u_vals])
     ax_3.plot(curve_points[:, 0], curve_points[:, 1],
               linestyle='--', color = cfg.color[i], 
@@ -326,10 +326,12 @@ ax_3.legend(loc='upper right')
 ax_3.set_xlabel(r"$\theta$ (normalized by 2$\pi$)")
 ax_3.set_ylabel(r"$\psi$ (normalized by 2$\pi$)")
 ax_3.set_title("Poloidal Angles")
+ax_3.grid(True)
 ax_4.legend(loc='upper right')
 ax_4.set_xlabel(r"$\theta$ (normalized by 2$\pi$)")
 ax_4.set_ylabel(r"$r$ (normalized by $a$)")
 ax_4.set_title("Poloidal Radii")
+ax_4.grid(True)
 
 for i in range(len(psi[0])):
     psi_0 = [p[i] for p in psi]
@@ -350,30 +352,5 @@ for i in range(1, len(psi[0])):
 print(check_clash(psi))
 print(check_clash(psi_deltas))
 
-for j in range(len(psi[0])-1):
-    psi_delta_nurbs.append([[phi[0][1],psi_deltas[j][0]],
-                           [phi[0][2],psi_deltas[j][1]],
-                           [phi[0][3],psi_deltas[j][2]]])
-    curve_points = np.array([nurbs_gen(psi_delta_nurbs[j], [1.0, 5.0, 1.0], 2, u) for u in u_vals])
-    ax_1.plot(curve_points[:,0], curve_points[:,1], linestyle='--', color = cfg.color[j], linewidth = 0.8)
-    ax_1.plot(phi[0][1:], psi_deltas[j], 
-              label=r"$\psi_" + str(j + 1) + "$", 
-              marker='o', color = cfg.color[j],
-              linewidth = 0.8)
-    ax_2.plot(phi[0][1:], radius_deltas[j], 
-              label=r"$r_" + str(j + 1) + "$", 
-              marker='o', color = cfg.color[j],
-              linewidth = 0.8)
-
-ax_1.legend(loc='upper right')
-ax_1.set_xlabel(r"$\theta$ (normalized by 2$\pi$)")
-ax_1.set_ylabel(r"$\Delta  \psi$ (normalized by 2$\pi$)")
-ax_1.set_title("Poloidal Angles")
-ax_1.grid(True, linestyle='--', alpha=0.5)
-ax_2.legend(loc='upper right')
-ax_2.set_xlabel(r"$\theta$ (normalized by 2$\pi$)")
-ax_2.set_ylabel(r"$\Delta r$ (normalized by $a$)")
-ax_2.set_title("Poloidal Radii")
-ax_2.grid(True, linestyle='--', alpha=0.5)
 plt.tight_layout()
 plt.savefig("./_paper/poloidal_delta_psi.pdf")
