@@ -260,7 +260,6 @@ for i in range(len(psi[0])):
     
     radius_0 = [r[i] for r in radius]
     ax_4.plot(phi[0], radius_0, label=r"$r_" + str(i + 1) + "$", marker='o')
-    print(radius_0)
     radius_nurbs.append([[phi[0][0],radius_0[0]],
                       [phi[0][1],radius_0[1]],
                            [phi[0][2],radius_0[2]],
