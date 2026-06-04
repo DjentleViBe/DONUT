@@ -36,6 +36,7 @@ def callback(*args):
 def optimisation_block(x0, data_format):
     """
     main optimisation block for gradient based methods"""
+    print(f"Running {cfg.STUDY_NAME} optimization...")
     elongation_current_iteration.append(gp.TRIAL_ELONGATION)
     triangularity_current_iteration.append(gp.CURRENT_TRIANGULARITY)
     ar_current_iteration.append(gp.CURRENT_AR)
@@ -79,7 +80,7 @@ def optimisation_block(x0, data_format):
 
     toroidal_sections, poloidal_sections = gf.delinearize_data(gp.CURRENT_X)
     write_geometry_parameters_to_file(toroidal_sections, poloidal_sections,
-                                        data_format, "./results/"+
+                                         "./results/"+
                                         cfg.STUDY_NAME + "_" + cfg.METHOD +
                                         "_optimized_geometry.json")
     print(f"Current elongation : {gp.TRIAL_ELONGATION}")
@@ -88,7 +89,7 @@ def optimisation_block(x0, data_format):
                         "_" + cfg.METHOD +"_optimized_geometry")
     toroidal_sections, poloidal_sections = gf.delinearize_data(gp.BEST_X)
     write_geometry_parameters_to_file(toroidal_sections, poloidal_sections,
-                                        data_format, "./results/"+ cfg.STUDY_NAME +
+                                         "./results/"+ cfg.STUDY_NAME +
                                         "_" + cfg.METHOD + "_best_geometry.json")
     print(f"Max elongation : {gp.BEST_ELONGATION}")
     geometry_construct(toroidal_sections, poloidal_sections,
@@ -110,12 +111,11 @@ def geometry_init(plot):
     """
     Initialise geoemtry
     """
-    print(f"Running {cfg.STUDY_NAME} optimization...")
     x0, data_format = gf.linearize_data("./inputs/toroidal_section.json")
     gp.FORMAT = data_format
     toroidal_sections, poloidal_sections = gf.delinearize_data(x0)
     write_geometry_parameters_to_file(toroidal_sections, poloidal_sections,
-                                        data_format, "./results/"+ cfg.STUDY_NAME
+                                         "./results/"+ cfg.STUDY_NAME
                                         + "_" + cfg.METHOD + "_initial_geometry.json")
 
     gp.TRIAL_ELONGATION, gp.CURRENT_TRIANGULARITY, gp.CURRENT_AR = geometry_construct(
@@ -126,3 +126,20 @@ def geometry_init(plot):
                                                             "_" + cfg.METHOD +
                                                             "_initial_geometry")
     return x0, data_format
+
+def genetic_init(toroidal_sections, poloidal_sections, plot):
+    """
+    Initialise geoemtry
+    """
+    write_geometry_parameters_to_file(toroidal_sections, poloidal_sections,
+                                         "./results/"+ cfg.STUDY_NAME
+                                        + "_" + cfg.METHOD + "_initial_geometry.json")
+
+    gp.TRIAL_ELONGATION, gp.CURRENT_TRIANGULARITY, gp.CURRENT_AR = geometry_construct(
+                                                            toroidal_sections,
+                                                            poloidal_sections,
+                                                            init=True, plot=plot,
+                                                            filename=cfg.STUDY_NAME +
+                                                            "_" + cfg.METHOD +
+                                                            "_initial_geometry")
+    return 0

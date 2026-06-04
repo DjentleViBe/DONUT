@@ -5,6 +5,8 @@ from geometry.geometry_reader import get_geometry_parameters_from_toroidal_file,
 from geometry.geometry_constraints import f_to_u, u_to_f
 from helper.fourier_helper import fourier_encode, fourier_decode
 import geometry.geometry_process as gp
+import random
+from classes_geometry import DONUT_Genetic
 
 def linearize_data(toroidal_file):
     """
@@ -12,7 +14,7 @@ def linearize_data(toroidal_file):
     Toroidal - [phi, theta, radius, weights, sections] * N_t
     Poloidal - [theta, radius, weights] * N_s
     """
-    print("linearizing data")
+    print("Linearizing data")
     toroidal_array = []
     poloidal_array = []
     format = []
@@ -228,3 +230,59 @@ def delinearize_data(x0):
         }
     
     return toroidal_sections, poloidal_sections
+
+def genetic_data(N_s = 4, 
+                 phi_limits = [-30, 30], 
+                 N_limits = [1, 6],
+                 A_limits = [0.1, 1],
+                 k_limits = [1, 3]):
+    do_gen = DONUT_Genetic([], [], [], [], 0.0, 0.0, 0.0)
+    weights = np.ones(N_s)
+    poloidal_sections = []
+
+    do_gen.phi_collect = [random.uniform(0, 1) for _ in range(N_s)]
+    do_gen.theta_collect = [0.0] + [random.uniform(0, 1) for _ in range(N_s - 1)]
+    do_gen.theta_collect.sort()
+    do_gen.toroid_radius_collect = [random.uniform(0, 1) for _ in range(N_s)]
+    do_gen.sections_collect = [0.0] + [random.uniform(0, 1) for _ in range(N_s - 1)]
+    do_gen.sections_collect.sort()
+    do_gen.N_collect = random.uniform(0, 1)
+    do_gen.A_collect = random.uniform(0, 1)
+    do_gen.k_collect = random.uniform(0, 1)
+
+    do_gen.psi_collect = [0.0] + [random.uniform(0, 1) for _ in range(N_s - 1)]
+    do_gen.psi_collect.sort()
+    do_gen.poloid_radius_collect = [random.uniform(0.0, 1) for _ in range(N_s)]
+    phi_limits[0] = 90 + phi_limits[0]
+    phi_limits[1] = 90 + phi_limits[1]
+    phi_actual = [phi_limits[0] + x * (phi_limits[1] - phi_limits[0]) for x in do_gen.phi_collect]
+    theta_actual = [x * (360) for x in do_gen.theta_collect]
+    N_actual = int(N_limits[0] + do_gen.N_collect * (N_limits[1] - N_limits[0]))
+    A_actual = A_limits[0] + do_gen.A_collect * (A_limits[1] - A_limits[0])
+    k_actual = k_limits[0] + do_gen.k_collect * (k_limits[1] - k_limits[0])
+
+    psi_actual = [x * (360) for x in do_gen.psi_collect]
+    sections = np.array(np.linspace(start=0.0, stop = 1.0 - (1 / cfg.NUM_T), num=cfg.NUM_T), dtype=np.float64)
+    toroidal_sections = {
+        "N_t": N_s,
+        "phi": phi_actual,
+        "theta": theta_actual,
+        "radius": do_gen.toroid_radius_collect,
+        "weights": weights,
+        "degree": 3,
+        "sections": sections,
+        "N" : N_actual,
+        "A" : A_actual,
+        "k" : k_actual
+        }
+    N_t = cfg.NUM_T
+    for i in range(N_t):
+        poloidal_sections.append({
+                "N_s": N_s,
+                "psi": psi_actual,
+                "radius": do_gen.poloid_radius_collect,
+                "weights": weights,
+                "degree": 3
+            })
+    
+    return toroidal_sections, poloidal_sections, do_gen

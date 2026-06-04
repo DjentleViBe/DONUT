@@ -4,6 +4,18 @@ Contains data classes required for geometry construction
 from dataclasses import dataclass
 
 @dataclass
+class DONUT_Genetic:
+    """
+    Genetic data for geoemtry"""
+    phi_collect:list
+    theta_collect:list
+    toroid_radius_collect:list
+    sections_collect:list
+    N_collect:float
+    A_collect:float
+    k_collect:float
+
+@dataclass
 class GeometryData:
     """
     Geometry data for construction
