@@ -5,8 +5,7 @@ from geometry.geometry_reader import get_geometry_parameters_from_toroidal_file,
 from geometry.geometry_constraints import f_to_u, u_to_f
 from helper.fourier_helper import fourier_encode, fourier_decode
 import geometry.geometry_process as gp
-import random
-from classes_geometry import DonutGenetic
+import config as cfg
 
 def linearize_data(toroidal_file):
     """
@@ -231,14 +230,10 @@ def delinearize_data(x0):
     
     return toroidal_sections, poloidal_sections
 
-def genetic_data(N_s = 4, 
-                 phi_limits = [-30, 30], 
-                 N_limits = [1, 6],
-                 A_limits = [0.1, 1],
-                 k_limits = [1, 3]):
-    weights = np.ones(N_s)
-    poloidal_sections = []
-
+def genetic_data(N_s = cfg.NUM_S):
+    """
+    Generate geometry data for GA
+    """
     phi_collect = np.random.uniform(0, 1, N_s)
     toroid_radius_collect = np.random.uniform(0, 1, N_s)
     poloid_radius_collect = np.random.uniform(0, 1, N_s)
@@ -260,49 +255,18 @@ def genetic_data(N_s = 4,
                             acollect,
                             kcollect,
                             ])
-    N_actual = int(N_limits[0] + ncollect[0] * (N_limits[1] - N_limits[0]))
-    A_actual = A_limits[0] + acollect[0] * (A_limits[1] - A_limits[0])
-    k_actual = k_limits[0] + kcollect[0] * (k_limits[1] - k_limits[0])
-    sections = np.array(np.linspace(start=0.0, stop = 1.0 - (1 / cfg.NUM_T), num=cfg.NUM_T), dtype=np.float64)
-    theta_actual = np.concatenate((
-    [0.0],
-    np.cumsum(theta_collect) * 360.0
-    ))
-    psi_actual = np.concatenate((
-        [0.0],
-        np.cumsum(psi_collect) * 360.0
-    ))
-    phi_actual = [90 + phi_limits[0] + x * (phi_limits[1] - phi_limits[0]) for x in phi_collect]
-    """
-    toroidal_sections = {
-        "N_t": N_s,
-        "phi": phi_actual,
-        "theta": theta_actual[:-1],
-        "radius": toroid_radius_collect,
-        "weights": weights,
-        "degree": 3,
-        "sections": sections,
-        "N" : N_actual,
-        "A" : A_actual,
-        "k" : k_actual
-        }
-    N_t = cfg.NUM_T
-    for i in range(N_t):
-        poloidal_sections.append({
-                "N_s": N_s,
-                "psi": psi_actual[:-1],
-                "radius": poloid_radius_collect,
-                "weights": weights,
-                "degree": 3
-            })
-    """
     return do_gen
 
-def decode_genome(do_gen, N_s,
-                  phi_limits = [-30, 30], 
-                 N_limits = [1, 6],
-                 A_limits = [0.1, 1],
-                 k_limits = [1, 3]):
+def decode_genome(do_gen, N_s = cfg.NUM_S,
+                  theta_limits = cfg.THETA_LIMITS, 
+                 N_limits = cfg.N_LIMITS,
+                 A_limits = cfg.B_LIMITS,
+                 k_limits = cfg.K_LIMITS,
+                 radius_plimits = cfg.RADIUS_P,
+                 radius_tlimits = cfg.RADIUS_T):
+    """
+    decode genome information into poloid and toroid sections
+    """
     poloidal_sections = []
     weights = np.ones(N_s)
     idx = 0
@@ -333,26 +297,37 @@ def decode_genome(do_gen, N_s,
     A_actual = A_limits[0] + acollect[0] * (A_limits[1] - A_limits[0])
     k_actual = k_limits[0] + kcollect[0] * (k_limits[1] - k_limits[0])
     sections = np.array(np.linspace(start=0.0, stop = 1.0 - (1 / cfg.NUM_T), num=cfg.NUM_T), dtype=np.float64)
-    theta_actual = np.concatenate((
+    phi_collect = phi_collect / phi_collect.sum()
+    phi_actual = np.concatenate((
     [0.0],
-    np.cumsum(theta_collect) * 360.0
+    np.cumsum(phi_collect) * 360.0
     ))
-
+    psi_collect = psi_collect / psi_collect.sum()
     psi_actual = np.concatenate((
         [0.0],
         np.cumsum(psi_collect) * 360.0
     ))
 
-    phi_actual = (
+    theta_actual = (
         90.0
-        + phi_limits[0]
-        + phi_collect * (phi_limits[1] - phi_limits[0])
+        + theta_limits[0]
+        + theta_collect * (theta_limits[1] - theta_limits[0])
+    )
+
+    poloid_radius_actual = (
+        radius_plimits[0]
+        + poloid_radius_collect * (radius_plimits[1] - radius_plimits[0])
+    )
+
+    toroid_radius_actual = (
+        radius_tlimits[0]
+        + toroid_radius_collect * (radius_tlimits[1] - radius_tlimits[0])
     )
     toroidal_sections = {
         "N_t": N_s,
-        "phi": phi_actual,
-        "theta": theta_actual[:-1],
-        "radius": toroid_radius_collect,
+        "phi": phi_actual[:-1],
+        "theta": theta_actual,
+        "radius": toroid_radius_actual,
         "weights": weights,
         "degree": 3,
         "sections": sections,
@@ -360,12 +335,14 @@ def decode_genome(do_gen, N_s,
         "A" : A_actual,
         "k" : k_actual
         }
-
+    gp.N = [N_actual]
+    gp.A = [A_actual]
+    gp.k = [k_actual]
     for i in range(cfg.NUM_T):
         poloidal_sections.append({
                     "N_s": N_s,
                     "psi": psi_actual[:-1],
-                    "radius": poloid_radius_collect,
+                    "radius": poloid_radius_actual,
                     "weights": weights,
                     "degree": 3
                 })

@@ -32,13 +32,13 @@ NUM_T = 100
 NUM_GV = 100
 # GA params
 POP_SIZE = 50
-GENERATIONS = 10
+GENERATIONS = 100
 ELITE_FRACTION = 0.1
 NUM_S = 4
-PHI_LIMITS= [-30, 30]
+THETA_LIMITS= [-5, 5]
 N_LIMITS = [1, 6]
-A_LIMITS = [0.1, 1]
-K_LIMITS = [1, 3]
+B_LIMITS = [0.1, 1]
+K_LIMITS = [0.1, 1]
 RADIUS_P = [0.01, 0.3]
 RADIUS_T = [0.8, 1.0]
 # plotting parameters

@@ -153,7 +153,7 @@ def genetic_objective(te, ct, ar):
     """
     Objective function for GA
     """
-    return te + ct + ar
+    return te
 
 def tournament_selection(fitness, k=3):
     """
