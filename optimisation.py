@@ -11,7 +11,7 @@ from geometry.geometry_fourier import genetic_data
 from launch_geometry import geometry_construct
 import geometry.geometry_process as gp
 import geometry.geometry_fourier as gf
-from classes_geometry import DonutGenetic 
+import random
 
 ITERATION = 0  # external counter
 elongation_current_iteration = []
@@ -149,14 +149,101 @@ def genetic_init(toroidal_sections, poloidal_sections, plot):
                                                             "_initial_geometry")
     return 0
 
-def genetic_block(pop_size):
+def genetic_objective(te, ct, ar):
+    return te + ct + ar
+
+def tournament_selection(fitness, k=3):
+    candidates = random.sample(fitness, k)
+    candidates.sort(key=lambda x: x[0])
+    return candidates[0][1]
+
+def crossover(p1, p2):
+    cut = np.random.randint(1, len(p1))
+    return np.concatenate([p1[:cut], p2[cut:]])
+
+def mutate(genome, mutation_rate=0.1, sigma=0.05):
+    child = genome.copy()
+    mask = np.random.rand(len(child)) < mutation_rate
+    child[mask] += np.random.normal(loc=0.0, scale=sigma,size=np.sum(mask))
+    child = np.clip(child, 0.0, 1.0)
+    return child
+
+def evaluate_genome(do_gen):
+    toroids, poloids = gf.decode_genome(do_gen, 4)
+    genetic_init(
+        toroids,
+        poloids,
+        plot=False
+    )
+
+    score = genetic_objective(
+        gp.TRIAL_ELONGATION,
+        gp.CURRENT_TRIANGULARITY,
+        gp.CURRENT_AR
+    )
+    return score
+
+def genetic_block(pop_size = 50,
+                  generations=100,
+                  elite_fraction=0.1):
+    # --------------------------------------------------
+    # Initial population
+    # --------------------------------------------------
     population = [genetic_data(4) for _ in range(pop_size)]
-    fitness = []
-    for toroid, poloid, do_gen in population:
-        genetic_init(toroid, poloid, plot=False)
-        print(gp.TRIAL_ELONGATION, gp.CURRENT_TRIANGULARITY, gp.CURRENT_AR)
-        fitness.append((
-            gp.TRIAL_ELONGATION,
-            gp.CURRENT_TRIANGULARITY,
-            gp.CURRENT_AR
-        ))
+    best_genome = None
+    best_score = np.inf
+    # --------------------------------------------------
+    # Evolution loop
+    # --------------------------------------------------
+    for generation in range(generations):
+        fitness_list = []
+
+        # ----------------------------------------------
+        # Evaluate
+        # ----------------------------------------------
+        for do_gen in population:
+            score = evaluate_genome(do_gen)
+            fitness_list.append(
+                (score, do_gen)
+            )
+        fitness_list.sort(
+            key=lambda x: x[0]
+        )
+        generation_best_score = fitness_list[0][0]
+        generation_best_genome = fitness_list[0][1]
+        if generation_best_score < best_score:
+            best_score = generation_best_score
+            best_genome = generation_best_genome.copy()
+        print(
+            f"Gen {generation:4d} | "
+            f"Best = {generation_best_score:.6f} | "
+            f"Global Best = {best_score:.6f}"
+        )
+        # ----------------------------------------------
+        # Elitism
+        # ----------------------------------------------
+        elite_count = max(1, int(elite_fraction * pop_size))
+        new_population = [genome.copy() for _, genome in fitness_list[:elite_count]]
+        # ----------------------------------------------
+        # Create offspring
+        # ----------------------------------------------
+        while len(new_population) < pop_size:
+            parent1 = tournament_selection(fitness_list)
+            parent2 = tournament_selection(fitness_list)
+            child = crossover(parent1, parent2)
+            child = mutate(child, mutation_rate=0.1, sigma=0.05)
+            new_population.append(child)
+        population = new_population
+    # --------------------------------------------------
+    # Decode final best solution
+    # --------------------------------------------------
+    best_toroids, best_poloids = gf.decode_genome(
+        best_genome,
+        4
+    )
+    return (
+        best_genome,
+        best_score,
+        best_toroids,
+        best_poloids
+    )
