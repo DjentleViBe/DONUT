@@ -123,14 +123,14 @@ def plot_geometry(points_2d, ctrl_2d,
         if cfg.STUDY_NAME == "Type1":
             ax2.plot(x_section, points_2d[1][i], label=f"Section {i + 1}", color = cfg.color[i])
         elif cfg.STUDY_NAME in ("Type2", "Type3"):
-            ax2.plot(x_section, points_2d[1][i], color = cfg.color[0], linewidth=0.01)
+            ax2.plot(x_section, points_2d[1][i], color = cfg.color[0], linewidth=0.5)
     for j, ctrl_x_section in enumerate(ctrl_2d[0]):
         if cfg.STUDY_NAME == "Type1":
             ax2.scatter(ctrl_x_section, ctrl_2d[1][j], label=f"Control Points {j + 1}",
                     color = cfg.color[j], marker='x')
         if cfg.STUDY_NAME in ("Type2", "Type3"):
             ax2.scatter(ctrl_x_section, ctrl_2d[1][j],
-                    color = cfg.color[0], marker='x', s=0.01)
+                    color = cfg.color[0], marker='x', s=0.5)
     ax2.grid(linestyle='--', color='gray', linewidth=0.2)
     ax2.set_aspect('equal', adjustable='box')
     ax2.set_xticks(np.arange(-1.0, 1.1, step=0.5))
