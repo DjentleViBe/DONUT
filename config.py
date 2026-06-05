@@ -38,10 +38,10 @@ NUM_S = 4
 THETA_LIMITS= [-5, 5]
 N_LIMITS = [1, 6]
 B_LIMITS = [0.1, 1]
-K_LIMITS = [0.1, 1]
+K_LIMITS = [1, 10]
 RADIUS_P = [0.01, 0.3]
-RADIUS_T = [0.8, 1.0]
+RADIUS_T = [0.5, 1.0]
 # plotting parameters
-color = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728",
+color = ["#1f77b4", "#625b56", "#2ca02c", "#d62728",
           "#9467bd", "#8c564b", "#e377c2", "#7f7f7f",
             "#bcbd22", "#17becf"]

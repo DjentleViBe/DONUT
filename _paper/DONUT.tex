@@ -258,6 +258,9 @@ form the complete geometry.
   \item \textbf{Type 2} - A single poloidal base cross-section is defined using a closed 2D NURBS curve. 
   A twist parameter is then specified along the 3D guide curve. The base cross-section is 
   lofted along the guide vane, while twist and scaling transformations are applied about the local tangential direction.
+  \begin{equation}
+  \alpha(t) = k \cdot t \cdot \frac{2 \pi}{N} + B \cdot \sin{\frac{N \cdot t \cdot 2 \pi}{N_t}}
+  \end{equation}
   \item \textbf{Type 3} - The $r_p$ and $\psi$ parameters defining the 2D spline are treated as spatially varying functions along the guide vane.
   \item \textbf{Type 4} - A candidate geometry is represented as 
   the union of N spherical primitives, each defined by its 
@@ -274,6 +277,12 @@ form the complete geometry.
   optimisation and explicit topology optimisation 
   frameworks such as those of \cite{baron1999voxel} \cite{guo2014mmc}.
 \end{itemize}
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.7\linewidth,page=1]{poloidal_delta_psi.pdf}
+  \caption{Fitting NURBS curve for $\psi$ and $r$ values of Type 3 geometry. Periodic representations
+  require the last point to be adjusted accordingly.}
+\end{figure}
 
 \section{Optimisation}
 A NURBS curve of degree $p$ is defined as:
@@ -308,7 +317,8 @@ Solutions obtained using \texttt{Scipy} algorithms
 \texttt{SLSQP}, \texttt{L-BFGS-G},
 \texttt{COBYLA}, \texttt{COBYQA}, 
 \texttt{Nelder-Mead}, \texttt{trust-constr} and \texttt{Powell}
-are provided.
+are provided. For \texttt{trust-constr} and \texttt{SLSQP}, constraints are modelled as Non-Linear 
+representations while for others it is included as a penalty term in the objective function.
 
 \subsection{Genetic Algorithm}
 

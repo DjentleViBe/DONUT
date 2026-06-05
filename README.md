@@ -24,7 +24,11 @@ git clone https://github.com/djentlevibe/DONUT.git
 ```
 pip install -r requirements.txt
 ```
-3. Run
+To run gradient-based optimisation:
 ```
 python main.py
+```
+To run Genetic Algorithm:
+```
+./run_genetic.sh
 ```
