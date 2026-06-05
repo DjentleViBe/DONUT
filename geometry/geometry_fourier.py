@@ -293,9 +293,9 @@ def decode_genome(do_gen, N_s = cfg.NUM_S,
     
     kcollect= do_gen[idx : idx + 1]
 
-    N_actual = int(N_limits[0] + ncollect[0] * (N_limits[1] - N_limits[0]))
+    N_actual = N_limits[0] + ncollect[0] * (N_limits[1] - N_limits[0])
     A_actual = A_limits[0] + acollect[0] * (A_limits[1] - A_limits[0])
-    k_actual = k_limits[0] + kcollect[0] * (k_limits[1] - k_limits[0])
+    k_actual = int(k_limits[0] + kcollect[0] * (k_limits[1] - k_limits[0]))
     sections = np.array(np.linspace(start=0.0, stop = 1.0 - (1 / cfg.NUM_T), num=cfg.NUM_T), dtype=np.float64)
     phi_collect = phi_collect / phi_collect.sum()
     phi_actual = np.concatenate((
