@@ -1,6 +1,6 @@
 import json
 
-def write_geometry_parameters_to_file(toroidal_sections, poloidal_sections, data_format, filename):
+def write_geometry_parameters_to_file(toroidal_sections, poloidal_sections, filename):
     """Write the geometry parameters to an output file in JSON format.
     Args:
         toroidal_sections (list): List of toroidal section parameters.

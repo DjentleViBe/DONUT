@@ -16,12 +16,12 @@ from geometry.geometry_sector import build_sketch_sector, build_sketch_sector_to
 from geometry.geometry_plotter import plot_geometry
 from geometry.geometry_operations import rotate_poloidal_section
 from geometry.geometry_build import loft_revolved, write_stl, merge_stls
+from geometry.geometry_operations import get_nurbs_y
 from objectives import compute_elongation_fit, compute_average_triangularity, \
                         compute_average_aspect_ratio
 from classes_geometry import GeometryData, \
                             PoloidalGeometry, \
                             ToroidalGeometry
-from geometry.geometry_operations import nurbs_gen, get_nurbs_y
 # from scipy.special import logsumexp
 
 def softmax_max(x, beta=10.0):
@@ -115,12 +115,12 @@ def geometry_preprocess(toroidal_sections, poloidal_sections):
                             [sections[2], radius_0[2]],
                             [sections[3], radius_0[3]],
                             [1.0, radius_0[0]]])
-            psi_points.append(get_nurbs_y(u_vals, 
-                        psi_nurbs[i], 
+            psi_points.append(get_nurbs_y(u_vals,
+                        psi_nurbs[i],
                         [1.0, 5.0, 5.0, 5.0, 1.0],
                         2)[:-1])
-            radius_points.append(get_nurbs_y(u_vals, 
-                        radius_nurbs[i], 
+            radius_points.append(get_nurbs_y(u_vals,
+                        radius_nurbs[i],
                         [1.0, 5.0, 5.0, 5.0, 1.0],
                         2))
         toroid_geom = get_toroidal_coordinates_tangent(u_vals,
@@ -144,7 +144,7 @@ def geometry_preprocess(toroidal_sections, poloidal_sections):
             geom.x_moved_collections.append(moved_points[0])
             geom.y_moved_collections.append(moved_points[1])
             geom.z_moved_collections.append(moved_points[2])
-        
+
     return geom.x_collections, geom.y_collections, \
             geom.x_moved_collections ,geom.y_moved_collections, geom.z_moved_collections, \
             geom.ctrl_x_collections, geom.ctrl_y_collections, \
@@ -192,7 +192,7 @@ def geometry_elongation(poloidal_sections, moved_collections,
                     for j in range(cfg.NUM_GV)
                     )
                 )
-    elif cfg.STUDY_NAME == "Type2" or cfg.STUDY_NAME == "Type3":
+    elif cfg.STUDY_NAME in ('Type2', 'Type3'):
         for i in range(cfg.NUM_T):
             next_i = (i + 1) % cfg.NUM_T
             current_section = np.stack([moved_collections[0][i],
