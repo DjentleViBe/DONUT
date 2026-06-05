@@ -136,9 +136,9 @@ def genetic_init(toroidal_sections, poloidal_sections, plot):
     """
     Initialise geoemtry
     """
-    write_geometry_parameters_to_file(toroidal_sections, poloidal_sections,
-                                         "./results/"+ cfg.STUDY_NAME
-                                        + "_" + cfg.METHOD + "_initial_geometry.json")
+    # write_geometry_parameters_to_file(toroidal_sections, poloidal_sections,
+    #                                     "./results/"+ cfg.STUDY_NAME
+    #                                    + "_" + cfg.METHOD + "_initial_geometry.json")
 
     gp.TRIAL_ELONGATION, gp.CURRENT_TRIANGULARITY, gp.CURRENT_AR = geometry_construct(
                                                             toroidal_sections,
@@ -264,7 +264,7 @@ def genetic_block(pop_size = cfg.POP_SIZE,
     best_toroids, best_poloids = gf.decode_genome(best_genome, 4)
     write_geometry_parameters_to_file(best_toroids, best_poloids,
                                          "./results/"+ cfg.STUDY_NAME
-                                        + "_" + cfg.METHOD + "_initial_geometry.json")
+                                        + "_" + cfg.METHOD + "_final_geometry.json")
 
     gp.TRIAL_ELONGATION, gp.CURRENT_TRIANGULARITY, gp.CURRENT_AR = geometry_construct(
                                                             best_toroids,
