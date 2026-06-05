@@ -4,6 +4,7 @@ _paper/*
 !_paper/*.bib
 !_paper/*.pdf
 
+*.pylintrc
 outputs/*.stl
 results/*.json
 results/*.pdf
