@@ -27,6 +27,9 @@ def cox_de_boor(u, i, p, knot):
     return left + right
 
 def generate_clamped_knots(n_ctrl, degree):
+    """
+    Geenrates knots for clamp points
+    """
     n = n_ctrl
     p = degree
     m = n + p + 1
@@ -41,7 +44,10 @@ def generate_clamped_knots(n_ctrl, degree):
             knots.append((i - p) / (n - p))
     return knots
 
-def N(i, p, u, knots):
+def nbasis(i, p, u, knots):
+    """
+    Returns terms for NURBS
+    """
     if p == 0:
         if (knots[i] <= u < knots[i+1]) or (
             np.isclose(u, knots[-1]) and knots[i+1] == knots[-1]):
@@ -52,12 +58,15 @@ def N(i, p, u, knots):
     term1 = 0.0
     term2 = 0.0
     if denom1 != 0:
-        term1 = (u - knots[i]) / denom1 * N(i, p-1, u, knots)
+        term1 = (u - knots[i]) / denom1 * nbasis(i, p-1, u, knots)
     if denom2 != 0:
-        term2 = (knots[i+p+1] - u) / denom2 * N(i+1, p-1, u, knots)
+        term2 = (knots[i+p+1] - u) / denom2 * nbasis(i+1, p-1, u, knots)
     return term1 + term2
 
 def nurbs_gen(ctrlpts, weights, degree, u):
+    """
+    Generates NURBS curve
+    """
     if np.isclose(u, 0.0):
         return np.array(ctrlpts[0])
 
@@ -75,9 +84,9 @@ def nurbs_gen(ctrlpts, weights, degree, u):
     numerator = np.zeros(2)
     denominator = 0.0
     for i in range(n+1):
-        Ni = N(i, degree, u, knots)
-        numerator += Ni * weights[i] * np.array(ctrlpts[i])
-        denominator += Ni * weights[i]
+        nival = nbasis(i, degree, u, knots)
+        numerator += nival * weights[i] * np.array(ctrlpts[i])
+        denominator += nival * weights[i]
     return numerator / (denominator + 1e-12)
 
 def nurbs_gen_periodic(ctrlpts, weights, degree, u):
@@ -100,9 +109,9 @@ def nurbs_gen_periodic(ctrlpts, weights, degree, u):
     denominator = 0.0
 
     for i in range(m):
-        Ni = N(i, degree, u, knots)
-        numerator += Ni * weights_ext[i] * ctrlpts_ext[i]
-        denominator += Ni * weights_ext[i]
+        nival = nbasis(i, degree, u, knots)
+        numerator += nival * weights_ext[i] * ctrlpts_ext[i]
+        denominator += nival * weights_ext[i]
 
     return numerator / (denominator + 1e-12)
 
@@ -253,7 +262,7 @@ def nurbs_curve_periodic(inputs, num_points=100):
     knot : knot vector (uniform for periodic)
     u_start, u_end : valid parameter range for evaluation
     num_points : number of points along the curve to compute"""
-    curve = []
+    curveval = []
     for j in range(num_points):
         u = inputs[4] + (inputs[5]-inputs[4])*j/(num_points-1)
 
@@ -266,9 +275,9 @@ def nurbs_curve_periodic(inputs, num_points=100):
                 num[k] += nval * ci[k]
             den += nval
 
-        curve.append([c/den for c in num])
+        curveval.append([c/den for c in num])
 
-    return curve
+    return curveval
 
 def move_poloidal_section_origin(points, origin):
     """Move the origin of a poloidal section to a new location.
@@ -355,7 +364,7 @@ def rotation_matrix_from_vector_no_twist(vector, center, twist = 0):
     y_twisted = -s * x_axis + c * y_axis
 
     return np.stack([x_twisted, y_twisted, z_axis], axis=1)
-    
+
 def rotate_poloidal_section(points, center, vector, twist = 0):
     """
     Rotate Nx3 array of points about 'center'
@@ -372,22 +381,33 @@ def rotate_poloidal_section(points, center, vector, twist = 0):
     return rotated + center[:, None]
 
 def curve(u, ctrlpts, weights, degree):
+    """
+    Generate NURBS curve
+    """
     return nurbs_gen(ctrlpts, weights, degree, u)
 
 def fx(u, ctrlpts, weights, degree):
+    """
+    Get x value"""
     return curve(u, ctrlpts, weights, degree)[0]
 
 def fy(u, ctrlpts, weights, degree):
+    """
+    Get y value
+    """
     return curve(u, ctrlpts, weights, degree)[1]
 
 
 def get_nurbs_y(x_targets, ctrlpts, weights, degree):
+    """
+    Get y value from x NURBS points
+    """
     y_out = []
 
-    x0 = fx(0.0, ctrlpts, weights, degree)
-    x1 = fx(1.0, ctrlpts, weights, degree)
+    # x0 = fx(0.0, ctrlpts, weights, degree)
+    # x1 = fx(1.0, ctrlpts, weights, degree)
 
-    x_min, x_max = min(x0, x1), max(x0, x1)
+    # x_min, x_max = min(x0, x1), max(x0, x1)
     us = np.linspace(0, 1, 200)
     xs = np.array([fx(u, ctrlpts, weights, degree) for u in us])
     for xt in x_targets:

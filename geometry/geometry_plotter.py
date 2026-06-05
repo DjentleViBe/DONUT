@@ -53,6 +53,9 @@ def toroidal_cross_section(xyz, ctrl_pts):
     return ax
 
 def plot_stl(ax, filename, color='lightblue', alpha=0.2):
+    """
+    Plot .stl data
+    """
     m = mesh.Mesh.from_file(filename)
 
     # triangles: (N,3,3)
@@ -119,13 +122,13 @@ def plot_geometry(points_2d, ctrl_2d,
     for i, x_section in enumerate(points_2d[0]):
         if cfg.STUDY_NAME == "Type1":
             ax2.plot(x_section, points_2d[1][i], label=f"Section {i + 1}", color = cfg.color[i])
-        elif cfg.STUDY_NAME == "Type2" or cfg.STUDY_NAME == "Type3":
+        elif cfg.STUDY_NAME in ("Type2", "Type3"):
             ax2.plot(x_section, points_2d[1][i], color = cfg.color[0], linewidth=0.01)
     for j, ctrl_x_section in enumerate(ctrl_2d[0]):
         if cfg.STUDY_NAME == "Type1":
             ax2.scatter(ctrl_x_section, ctrl_2d[1][j], label=f"Control Points {j + 1}",
                     color = cfg.color[j], marker='x')
-        if cfg.STUDY_NAME == "Type2" or cfg.STUDY_NAME == "Type3":
+        if cfg.STUDY_NAME in ("Type2", "Type3"):
             ax2.scatter(ctrl_x_section, ctrl_2d[1][j],
                     color = cfg.color[0], marker='x', s=0.01)
     ax2.grid(linestyle='--', color='gray', linewidth=0.2)
@@ -141,17 +144,21 @@ def plot_geometry(points_2d, ctrl_2d,
     ax3.set_zlabel("Z")
     for i, x_section in enumerate(moved_points_3d[0]):
         if cfg.STUDY_NAME == "Type1":
-            ax3.plot(x_section, moved_points_3d[1][i], moved_points_3d[2][i], color=cfg.color[i])
-        elif cfg.STUDY_NAME == "Type2" or cfg.STUDY_NAME == "Type3":
-            ax3.plot(x_section, moved_points_3d[1][i], moved_points_3d[2][i], color=cfg.color[0], linewidth = 0.2)
+            ax3.plot(x_section, moved_points_3d[1][i],
+                     moved_points_3d[2][i],
+                     color=cfg.color[i])
+        elif cfg.STUDY_NAME in ("Type2", "Type3"):
+            ax3.plot(x_section, moved_points_3d[1][i],
+                     moved_points_3d[2][i],
+                     color=cfg.color[0],
+                     linewidth = 0.2)
 
     for j, poloidal_section in enumerate(guide_vane_collections):
-        for k, guide_vane in enumerate(poloidal_section):
+        for _, guide_vane in enumerate(poloidal_section):
             x = [p[0] for p in guide_vane]
             y = [p[1] for p in guide_vane]
             z = [p[2] for p in guide_vane]
             ax1.plot(x, y, z, color = 'k', lw = 0.1, alpha=0.2)
-
     ax3.plot(points_3d[0], points_3d[1], points_3d[2], color = 'k', linestyle = '--')
     ax3.set_xlim(-1.0, 1.0)
     ax3.set_ylim(-1.0, 1.0)
@@ -160,7 +167,7 @@ def plot_geometry(points_2d, ctrl_2d,
     ax3.set_yticks(np.arange(-1.0, 1.1, step=0.5))
     ax3.set_zticks(np.arange(-1.0, 1.1, step=0.5))
     plot_stl(ax3, stlfile)
-    plt.suptitle(f"Study type : {cfg.STUDY_NAME}, Method : {cfg.METHOD}", 
+    plt.suptitle(f"Study type : {cfg.STUDY_NAME}, Method : {cfg.METHOD}",
                  fontweight='bold', fontsize=16)
     ax4 = fig.add_subplot(gs[3:4,1:])
     ax4.axis('off')

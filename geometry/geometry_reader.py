@@ -67,9 +67,8 @@ def get_geometry_parameters_from_twist_file(twist_file):
     """
     with open(twist_file, "r", encoding="utf-8") as f:
         data = json.load(f)
-        Pm = data.get("Pm")
-        B = data.get("B")
-        k = data.get("k")
-        
+        pmval = data.get("Pm")
+        bval = data.get("B")
+        kval = data.get("k")
         # aram_num_sector_toroidal(nval, theta, phi, radius)
-        return {"Pm": Pm, "B": B, "k": k}
+        return {"Pm": pmval, "B": bval, "k": kval}

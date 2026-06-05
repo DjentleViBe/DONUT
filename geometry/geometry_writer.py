@@ -1,3 +1,6 @@
+"""
+Write geometry properties to file.
+"""
 import json
 
 def write_geometry_parameters_to_file(toroidal_sections, poloidal_sections, filename):
@@ -13,5 +16,5 @@ def write_geometry_parameters_to_file(toroidal_sections, poloidal_sections, file
         "poloidal": poloidal_sections
     }
 
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding = 'utf-8') as f:
         json.dump(output, f, indent=4, default=str)
