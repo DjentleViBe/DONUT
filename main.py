@@ -14,7 +14,7 @@ if __name__ == "__main__":
 
     if args.type == "genetic":
         print("Genetic alogorithm study")
-        best_genome, best_score, best_toroids, best_poloids = genetic_block(3)
+        best_genome, best_score, best_toroids, best_poloids = genetic_block()
     else:
         x0, data_format = geometry_init(plot=True)
         optimisation_block(x0)
