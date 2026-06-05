@@ -42,10 +42,7 @@ def build_sketch_sector(theta, radius, degree, weights, num_points=100):
         u_end],
         num_points
     )
-    x, y = zip(*curve_points)
-    ctrl_x, ctrl_y = zip(*ctrl_pts)
-    curvegeom = SketchGeometryPoloidal(x, y, ctrl_x, ctrl_y)
-    return curvegeom
+    return SketchGeometryPoloidal(*zip(*curve_points), *zip(*ctrl_pts))
 
 def build_sketch_sector_toroidal(theta, phi, radius, degree, weights, num_points=100):
     """Build the sketch of a toroidal sector based on the geometry parameters.
@@ -133,18 +130,18 @@ def is_inside_torus_axis(p0val, startcenter):
     thickness = 0.25 * np.clip(tval * 2, 1, 2)
     return thickness
 
-def guide_vane(startpoint, endpoint, startvector, endvector, startcenter, endcenter, num_points):
+def guide_vane(point, vector, center, num_points):
     """
     Constructs spline between start and end point with 2 poins in between
     """
-    p0val = np.array(startpoint)
-    p3val = np.array(endpoint)
+    p0val = np.array(point[0])
+    p3val = np.array(point[1])
 
-    t0val = np.array(startvector)
-    t1val = np.array(endvector)
+    t0val = np.array(vector[0])
+    t1val = np.array(vector[1])
 
-    start_w = is_inside_torus_axis(p0val, startcenter)
-    end_w = is_inside_torus_axis(p3val, endcenter)
+    start_w = is_inside_torus_axis(p0val, center[0])
+    end_w = is_inside_torus_axis(p3val, center[1])
 
     p1val = p0val + start_w * t0val
     p2val = p3val - end_w * t1val  # scaling vector only
@@ -154,17 +151,17 @@ def guide_vane(startpoint, endpoint, startvector, endvector, startcenter, endcen
     spline_3d = nurbs_curve(ctrl_pts, [1.0]*4, 3, num_points = num_points)
     return spline_3d
 
-def build_guide_vane(section_1, section_2, tangent_1, tangent_2, center_1, center_2, num_points):
+def build_guide_vane(section, tangent, center, num_points):
     """
     Builds guide vane from 2 closed sections
     """
     guide_vanes = []
-    for j, _ in enumerate(section_1[0]):
-        u_unit = tangent_1 / np.linalg.norm(tangent_1)
-        v_unit = tangent_2 / np.linalg.norm(tangent_2)
-        guide_vanes.append(guide_vane([section_1[0][j], section_1[1][j],section_1[2][j]],
-                                      [section_2[0][j], section_2[1][j],section_2[2][j]],
-                                      u_unit, v_unit,
-                                      center_1, center_2,
+    for j, _ in enumerate(section[0][0]):
+        u_unit = tangent[0] / np.linalg.norm(tangent[0])
+        v_unit = tangent[1] / np.linalg.norm(tangent[1])
+        guide_vanes.append(guide_vane([[section[0][0][j], section[0][1][j],section[0][2][j]],
+                                      [section[1][0][j], section[1][1][j],section[1][2][j]]],
+                                      [u_unit, v_unit],
+                                      [center[0], center[1]],
                                       num_points))
     return guide_vanes

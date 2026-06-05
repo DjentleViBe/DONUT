@@ -16,7 +16,7 @@ BEST_X = None
 CURRENT_X = None
 FUNC_EVAL = 0
 CONSTR_EVAL = 0
-FORMAT = None
+FORMAT = []
 B = [0]
 K = [0]
 PM = [0]
@@ -71,14 +71,11 @@ def geometry_process_optimization(x):
     Optimisation logic
     """
     global elongation_history, triangularity_history, ar_history
-    global FUNC_EVAL
-    global CURRENT_TRIANGULARITY, CURRENT_AR
+    global FUNC_EVAL, CURRENT_TRIANGULARITY, CURRENT_AR
     global BEST_TRIANGULARITY, BEST_AR, BEST_ELONGATION
     global BEST_X, CURRENT_X
     FUNC_EVAL += 1
-    penalty_tri = 0.0
-    penalty_ar = 0.0
-    total_penalty = 0.0
+    penalty_tri, penalty_ar, total_penalty = 0.0, 0.0, 0.0
     r = evaluator.evaluate(x)
     if cfg.METHOD not in ('trust-constr', 'SLSQP'):
         if r["triangularity"] < cfg.DELTA_MIN:
@@ -126,8 +123,7 @@ def geometry_process_optimization(x):
             BEST_AR = r["ar"]
         else:
             CURRENT_X = np.copy(x)
-    print(
-    f"Func eval {FUNC_EVAL}: "
+    print(f"Func eval {FUNC_EVAL}: "
     f"Objective: {r['elongation']:.4f}, "
     f"Triangularity: {r['triangularity']:.4f}, "
     f"Aspect Ratio: {r['ar']:.4f}")

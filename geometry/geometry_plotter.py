@@ -1,10 +1,10 @@
 """Plotting functions for DONUT geometry."""
 import matplotlib.pyplot as plt
-import config as cfg
 import numpy as np
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from stl import mesh
 import geometry.geometry_process as gp
+import config as cfg
 
 def poloidal_cross_section(x, y, ctrl_x, ctrl_y):
     """Plot the poloidal cross section of the geometry.
@@ -184,9 +184,9 @@ def plot_geometry(points_2d, ctrl_2d,
     $\epsilon_{{\max}}: {gp.BEST_ELONGATION:.4f}$
     $A: {gp.BEST_AR:.4f}$
     $\bar{{\delta}}: {gp.BEST_TRIANGULARITY:.4f}$
-    $N: {round(gp.N[0], 4)}$
-    $B: {round(gp.A[0], 4)}$
-    $k: {round(gp.k[0], 4)}$'''
+    $N: {round(gp.PM[0], 4)}$
+    $B: {round(gp.B[0], 4)}$
+    $k: {round(gp.K[0], 4)}$'''
     ax4.text(0.45, 0.3,
     label,
     ha='left',

@@ -16,14 +16,12 @@ def linearize_data(toroidal_file):
     Poloidal - [theta, radius, weights] * N_s
     """
     print("Linearizing data")
-    toroidal_array = []
-    poloidal_array = []
-    format = []
+    toroidal_array, poloidal_array, formatval = [], [], []
     theta0 = np.deg2rad(90.0)
     theta_delta = np.deg2rad(45.0)
     toroidal_prop = get_geometry_parameters_from_toroidal_file(toroidal_file)
     twist_prop = get_geometry_parameters_from_twist_file("inputs/twist_section.json")
-    format.append(toroidal_prop.get("N_t"))
+    formatval.append(toroidal_prop.get("N_t"))
     phi = np.radians(np.array(toroidal_prop.get("phi")))
     theta = ((np.array(toroidal_prop.get("theta")) * np.pi / 180.0) - theta0) / theta_delta
     radius = np.array(toroidal_prop.get("radius"), dtype=np.float64)
@@ -38,7 +36,6 @@ def linearize_data(toroidal_file):
         deltas = np.zeros(len(sections))
         # deltas = np.diff(np.r_[sections, sections[0] + len(sections)])
         combined = np.concatenate([phi_to_u, theta, radius, weights, deltas])
-
     elif cfg.STUDY_NAME == "Type2":
         pmval = np.array([twist_prop.get("Pm")], dtype=np.float64)
         bval = np.array([twist_prop.get("B")], dtype=np.float64)
@@ -68,10 +65,10 @@ def linearize_data(toroidal_file):
         nval = data.get("N_s")
         radius = np.array(data.get("radius"), dtype=np.float64)
         weights = np.array(data.get("weights"), dtype=np.float64)
-        degree = data.get("degree")
+        # degree = data.get("degree")
         combined = np.concatenate([psi, radius, weights])
         poloidal_array.append(combined)
-        format.append(nval)
+        formatval.append(nval)
         if cfg.STUDY_NAME == "Type2":
             break
     poloidal_flat = np.concatenate(poloidal_array) if poloidal_array else np.array([])
@@ -79,7 +76,7 @@ def linearize_data(toroidal_file):
     x0 = np.concatenate([poloidal_flat, toroidal_flat])
     print(f"Total number of elements to optimize: {len(x0)}")
 
-    return x0, format
+    return x0, formatval
 
 def delinearize_data(x0):
     """
