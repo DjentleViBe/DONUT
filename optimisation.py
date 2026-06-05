@@ -270,9 +270,7 @@ def genetic_block(pop_size = cfg.POP_SIZE,
                                                             best_toroids,
                                                             best_poloids,
                                                             init=False, plot=True,
-                                                            filename=cfg.STUDY_NAME +
-                                                            "_" + cfg.METHOD +
-                                                            "_final_geometry")
+                                                            filename="_final_geometry")
 
     return (
         best_genome,
