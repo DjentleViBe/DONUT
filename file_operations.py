@@ -29,3 +29,11 @@ def write_to_csv(*cols, filename="output.csv", header=None):
         # transpose columns → rows
         for row in zip(*cols):
             writer.writerow(row)
+
+def read_from_csv(filename):
+    """Read csv
+    """
+    with open(filename, newline="", encoding='utf-8') as f:
+        reader = csv.reader(f)
+        row_collect = [[float(x) for x in row] for row in reader]
+    return row_collect
