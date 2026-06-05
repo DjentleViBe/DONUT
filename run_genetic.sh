@@ -8,4 +8,4 @@ else
     sed -i '13s/.*/METHOD = "genetic"/' config.py
 fi
 
-python main.py --type genetic
+python -u main.py --type genetic
