@@ -268,7 +268,8 @@ def geometry_construct(toroidal_sections, poloidal_sections,
                          geom.z_moved_collections],
                         guide_vane_collections, "./outputs/" + cfg.STUDY_NAME +
                         "_" + cfg.METHOD + "_" + filename + ".stl",
-                        filename=filename)
+                        filename=cfg.STUDY_NAME +
+                        "_" + cfg.METHOD + "_" + filename)
     return ceval, ctval, arval
 
 def geometry_optimise(toroidal_sections, poloidal_sections):
