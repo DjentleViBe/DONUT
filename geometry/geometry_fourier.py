@@ -206,12 +206,12 @@ def delinearize_data(x0):
         }
     elif cfg.STUDY_NAME == "Type2":
         sections = np.array(np.linspace(start=0.0, stop = 1.0 - (1 / cfg.NUM_T), num=cfg.NUM_T), dtype=np.float64)
-        N = x0[idx : idx + 1]
+        Pm = x0[idx : idx + 1]
         idx += 1
-        gp.N = N
-        A = x0[idx : idx + 1]
+        gp.Pm = Pm
+        B = x0[idx : idx + 1]
         idx += 1
-        gp.A = A
+        gp.B = B
         k = x0[idx : idx + 1]
         gp.k = k
         idx += 1
@@ -223,8 +223,8 @@ def delinearize_data(x0):
         "weights": weights,
         "degree": 3,
         "sections": sections,
-        "N" : N,
-        "A" : A,
+        "Pm" : Pm,
+        "B" : B,
         "k" : k
         }
     
@@ -331,12 +331,12 @@ def decode_genome(do_gen, N_s = cfg.NUM_S,
         "weights": weights,
         "degree": 3,
         "sections": sections,
-        "N" : N_actual,
-        "A" : A_actual,
+        "Pm" : N_actual,
+        "B" : A_actual,
         "k" : k_actual
         }
-    gp.N = [N_actual]
-    gp.A = [A_actual]
+    gp.Pm = [N_actual]
+    gp.B = [A_actual]
     gp.k = [k_actual]
     for i in range(cfg.NUM_T):
         poloidal_sections.append({

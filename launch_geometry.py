@@ -64,8 +64,8 @@ def geometry_preprocess(toroidal_sections, poloidal_sections):
                                                     curvegeom.curve)
     if cfg.STUDY_NAME == "Type2":
         twist_params = (
-            toroidal_sections['N'],
-            toroidal_sections['A'],
+            toroidal_sections['Pm'],
+            toroidal_sections['B'],
             toroidal_sections['k'])
     else:
         twist_params = (0.0, 0.0, 0.0)
