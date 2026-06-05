@@ -8,23 +8,23 @@ from geometry.geometry_fourier import decode_genome
 from launch_geometry import geometry_construct
 import config as cfg
 import numpy as np
-
-rows = read_from_csv("./results/Type2_genetic.csv")
-
-for i, r in enumerate(rows):
-    print(i)
-    toroid, poloid = decode_genome(np.array(r))
-    geometry_construct(toroid,
-                       poloid,
-                       init=True, 
-                       plot=True,
-                        filename=f"final_geometry_gif_00{i}")
-    
 from pdf2image import convert_from_path
 from PIL import Image
 import glob
 
-def pdfs_to_gif(pdf_folder, output_gif="out.gif", fps=2):
+rows = read_from_csv("./results/Type2_genetic.csv")
+
+def generate_files():
+    for i, r in enumerate(rows):
+        print(i)
+        toroid, poloid = decode_genome(np.array(r))
+        geometry_construct(toroid,
+                        poloid,
+                        init=True, 
+                        plot=True,
+                            filename=f"final_geometry_gif_00{i}")
+
+def pdfs_to_gif(pdf_folder, output_gif="DONUT_genetic.gif", fps=15):
     images = []
 
     pdf_files = sorted(glob.glob(f"{pdf_folder}/*_gif_*.pdf"))
@@ -45,4 +45,5 @@ def pdfs_to_gif(pdf_folder, output_gif="out.gif", fps=2):
         loop=0
     )
 
+# generate_files()
 pdfs_to_gif("./results/")
