@@ -3,6 +3,7 @@ _paper/*
 !_paper/*.tex
 !_paper/*.bib
 !_paper/*.pdf
+*.gif
 
 *.pylintrc
 outputs/*.stl
