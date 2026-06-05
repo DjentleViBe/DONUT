@@ -163,19 +163,19 @@ def geometry_elongation(poloidal_sections, moved_collections,
             next_i = (i + 1) % len(poloidal_sections)
             guide_vane_collections.append(
                 build_guide_vane(
-                    [moved_collections[0][i],
+                    [[moved_collections[0][i],
                     moved_collections[1][i],
                     moved_collections[2][i]],
 
                     [moved_collections[0][next_i],
                     moved_collections[1][next_i],
-                    moved_collections[2][next_i]],
+                    moved_collections[2][next_i]]],
 
-                    toroidal_tangents[i],
-                    toroidal_tangents[next_i],
+                    [toroidal_tangents[i],
+                    toroidal_tangents[next_i]],
 
-                    toroidal_coordinates[i],
-                    toroidal_coordinates[next_i],
+                    [toroidal_coordinates[i],
+                    toroidal_coordinates[next_i]],
                     cfg.NUM_GV
                 )
             )
