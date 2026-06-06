@@ -45,5 +45,14 @@ def pdfs_to_gif(pdf_folder, output_gif="DONUT_genetic.gif", fps=8):
         loop=0
     )
 
-generate_files()
-pdfs_to_gif("./results/")
+def plot_history(filename):
+    history = np.array(read_from_csv(filename))
+    plt.plot(history[:,0], color = 'k')
+    plt.ylabel('Objective')
+    plt.xlabel('Generations')
+    plt.grid(True)
+    plt.savefig("./_paper/loss.pdf")
+
+#generate_files()
+#pdfs_to_gif("./results/")
+plot_history("./results/Type2_genetic_history.csv")
