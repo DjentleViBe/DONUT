@@ -5,7 +5,7 @@
 </picture>
 
 # DONUT : Design and Optimization of Non-axisymmetric Unified Tori
-**DONUT** (Design and Optimization of Non-axisymmetric Unified Tori) is a computational geometry tool for stellarator-type fusion reactors. It generates toroidal, non-axisymmetric plasma surfaces and coil geometries, enabling researchers to design and optimize complex 3D magnetic confinement systems.
+[**DONUT**](./_paper/DONUT.pdf)(Design and Optimization of Non-axisymmetric Unified Tori) is a computational geometry tool for stellarator-type fusion reactors. It generates toroidal, non-axisymmetric plasma surfaces and coil geometries, enabling researchers to design and optimize complex 3D magnetic confinement systems.
 
 Key features include:
 - High-fidelity toroidal mesh generation
