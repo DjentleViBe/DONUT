@@ -154,7 +154,17 @@ def genetic_objective(te, ct, ar):
     """
     Objective function for GA
     """
-    return te
+    penalty_tri, penalty_ar, total_penalty = 0.0, 0.0, 0.0
+    if ct < cfg.DELTA_MIN:
+        penalty_tri += cfg.PENALTY_WEIGHT * (cfg.DELTA_MIN - te)**2
+    if ct > cfg.DELTA_MAX:
+        penalty_tri += cfg.PENALTY_WEIGHT * (te - cfg.DELTA_MAX)**2
+    if ar < cfg.AR_MIN:
+        penalty_ar += cfg.AR_WEIGHT * (cfg.AR_MIN - ar)**2
+    if ar > cfg.AR_MAX:
+        penalty_ar += cfg.AR_WEIGHT * (ar - cfg.AR_MAX)**2
+    total_penalty = penalty_tri + penalty_ar
+    return te + total_penalty
 
 def tournament_selection(fitness, k=3):
     """
