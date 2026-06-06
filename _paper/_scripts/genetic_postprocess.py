@@ -24,7 +24,7 @@ def generate_files():
                         plot=True,
                             filename=f"final_geometry_gif_00{i}")
 
-def pdfs_to_gif(pdf_folder, output_gif="DONUT_genetic.gif", fps=15):
+def pdfs_to_gif(pdf_folder, output_gif="DONUT_genetic.gif", fps=8):
     images = []
 
     pdf_files = sorted(glob.glob(f"{pdf_folder}/*_gif_*.pdf"))
@@ -45,5 +45,5 @@ def pdfs_to_gif(pdf_folder, output_gif="DONUT_genetic.gif", fps=15):
         loop=0
     )
 
-# generate_files()
+generate_files()
 pdfs_to_gif("./results/")
