@@ -139,6 +139,7 @@
 \nomenclature{\(\phi_i\)}{azimuthal angle }
 \nomenclature{\(r_i\)}{radial distance }
 \nomenclature{\(\alpha\)}{Twist parameter }
+\nomenclature{\(P_m\)}{Modulation period }
 \printnomenclature
 
 \section{Introduction}
@@ -259,7 +260,7 @@ form the complete geometry.
   A twist parameter is then specified along the 3D guide curve. The base cross-section is 
   lofted along the guide vane, while twist and scaling transformations are applied about the local tangential direction.
   \begin{equation}
-  \alpha(t) = k \cdot t \cdot \frac{2 \pi}{N} + B \cdot \sin{\frac{N \cdot t \cdot 2 \pi}{N_t}}
+  \alpha(t) = k \cdot t \cdot \frac{2 \pi}{N} + B \cdot \sin{\frac{N \cdot t \cdot 2 \pi}{P_m}}
   \end{equation}
   \item \textbf{Type 3} - The $r_p$ and $\psi$ parameters defining the 2D spline are treated as spatially varying functions along the guide vane.
   \item \textbf{Type 4} - A candidate geometry is represented as 
@@ -321,6 +322,23 @@ are provided. For \texttt{trust-constr} and \texttt{SLSQP}, constraints are mode
 representations while for others it is included as a penalty term in the objective function.
 
 \subsection{Genetic Algorithm}
+The genetic algorithm was implemented using the Type 2 geometry 
+parameterization. Each individual in the population was 
+represented by a chromosome containing the complete set of 
+normalized geometry parameters, including toroidal radii, 
+poloidal radii, angular coordinates, section spacing parameters, 
+and global shaping parameters. Each parameter within the chromosome 
+constituted a gene that defined a specific aspect of the geometry.
+
+The initial population was generated using Latin Hypercube Sampling (LHS), 
+which provides a more uniform coverage of the design space than purely 
+random sampling. Objective history is given in Appendix \ref{app:losshistory}
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.7\linewidth,page=1]{Type2_genetic_final_geometry.pdf}
+  \caption{Results for Type 2 geometry after 100 generations and an initial 
+  population size of 300.}
+\end{figure}
 
 \subsection{Neural Networks}
 
@@ -373,6 +391,12 @@ Z(\theta, \phi) = \sum_{n=-N}^{N} \sum_{m=0}^{M} Z_{mn} \sin(m \theta - n \text{
 \end{equation}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\section{Fourier Geometry}
+\label{app:losshistory}
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.7\linewidth,page=1]{loss.pdf}
+\end{figure}
 \newpage
 % \input{checklist.tex}
 
