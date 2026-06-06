@@ -12,6 +12,7 @@ from geometry.geometry_fourier import genetic_data
 from launch_geometry import geometry_construct
 import geometry.geometry_process as gp
 import geometry.geometry_fourier as gf
+from scipy.stats import qmc
 
 ITERATION = 0  # external counter
 elongation_current_iteration = []
@@ -203,7 +204,9 @@ def genetic_block(pop_size = cfg.POP_SIZE,
     # --------------------------------------------------
     # Initial population
     # --------------------------------------------------
-    population = [genetic_data(4) for _ in range(pop_size)]
+    sampler = qmc.LatinHypercube(d=23)
+    population = sampler.random(n=pop_size)
+    # population = [genetic_data(4) for _ in range(pop_size)]
     best_genome = None
     best_score = np.inf
     best_genome_collect = []
@@ -270,7 +273,7 @@ def genetic_block(pop_size = cfg.POP_SIZE,
                                                             best_toroids,
                                                             best_poloids,
                                                             init=False, plot=True,
-                                                            filename="_final_geometry")
+                                                            filename="final_geometry")
 
     return (
         best_genome,
