@@ -262,6 +262,7 @@ form the complete geometry.
   \begin{equation}
   \alpha(t) = k \cdot t \cdot \frac{2 \pi}{N} + B \cdot \sin{\frac{N \cdot t \cdot 2 \pi}{P_m}}
   \end{equation}
+  The sensitivity of $\alpha$ is given in Appendix \ref{app:twistparam}.
   \item \textbf{Type 3} - The $r_p$ and $\psi$ parameters defining the 2D spline are treated as spatially varying functions along the guide vane.
   \item \textbf{Type 4} - A candidate geometry is represented as 
   the union of N spherical primitives, each defined by its 
@@ -391,11 +392,17 @@ Z(\theta, \phi) = \sum_{n=-N}^{N} \sum_{m=0}^{M} Z_{mn} \sin(m \theta - n \text{
 \end{equation}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{Fourier Geometry}
+\section{Generations}
 \label{app:losshistory}
 \begin{figure}[ht]
   \centering
-  \includegraphics[width=0.7\linewidth,page=1]{loss.pdf}
+  \includegraphics[width=0.4\linewidth,page=1]{loss.pdf}
+\end{figure}
+\section{Twist parameter}
+\label{app:twistparam}
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=1.0\linewidth,page=1]{Twistparameter.pdf}
 \end{figure}
 \newpage
 % \input{checklist.tex}
