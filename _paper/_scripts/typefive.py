@@ -55,14 +55,14 @@ deg = 3
 # 2. Generate series of curves (V direction stack)
 # ----------------------------
 curves = []
-theta_rad = np.radians(np.linspace(0, 270, 20))
+theta_rad = np.radians(np.linspace(0, 360, 20))
 for i in range (len(theta_rad)):
     points = []
     for j in range(0, len(curve_base)):
         points.append(rotate_point(curve_base[j], [0, 0, 1], theta_rad[i]))
-    # curves.append(curve_base + np.array([0, x[i], y[i]]))
     curves.append(points)
 
+curves.extend(curves[:deg])
 nv = len(curves)
 nu = len(curve_base)
 
@@ -169,6 +169,7 @@ ax.plot_surface(X, Y, Z, cmap='viridis', alpha=0.5)
 ax.set_aspect('equal', adjustable='box')
 # control points
 ctrl_flat = ctrl.reshape(-1, 3)
+print(f"Total number of design variables : {len(ctrl_flat)*3}")
 ax.scatter(ctrl_flat[:, 0], ctrl_flat[:, 1], ctrl_flat[:, 2],
            color='k', s=10)
 
