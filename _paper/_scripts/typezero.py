@@ -5,47 +5,52 @@ import matplotlib.pyplot as plt
 # Fourier coefficients
 # --------------------------
 
-Nfp = 5
+def gen_stellarator(R_modes, Z_modes, Nfp):
 
-R_modes = [
+    # --------------------------
+    # Angle grids
+    # --------------------------
+
+    ntheta = 150
+    nphi = 150
+
+    theta = np.linspace(0, 2*np.pi, ntheta)
+    phi   = np.linspace(0, 2*np.pi, nphi)
+
+    TH, PH = np.meshgrid(theta, phi, indexing='ij')
+
+    # --------------------------
+    # Evaluate Fourier surface
+    # --------------------------
+
+    R = np.zeros_like(TH)
+    Z = np.zeros_like(TH)
+
+    for m, n, coeff in R_modes:
+        R += coeff * np.cos(m*TH - n*Nfp*PH)
+
+    for m, n, coeff in Z_modes:
+        Z += coeff * np.sin(m*TH - n*Nfp*PH)
+
+    X = R * np.cos(PH)
+    Y = R * np.sin(PH)
+
+    return X, Y, Z
+
+N = 5
+
+R = [
     (0, 0, 1.0),   # major radius
     (1, 0, 0.25),  # elliptical cross-section
     (1, 1.0, 0.12),  # stellarator twist
 ]
 
-Z_modes = [
+Z = [
     (1, 0, 0.25),
     (1, 1, 0.12),
 ]
 
-# --------------------------
-# Angle grids
-# --------------------------
-
-ntheta = 150
-nphi = 150
-
-theta = np.linspace(0, 2*np.pi, ntheta)
-phi   = np.linspace(0, 2*np.pi, nphi)
-
-TH, PH = np.meshgrid(theta, phi, indexing='ij')
-
-# --------------------------
-# Evaluate Fourier surface
-# --------------------------
-
-R = np.zeros_like(TH)
-Z = np.zeros_like(TH)
-
-for m, n, coeff in R_modes:
-    R += coeff * np.cos(m*TH - n*Nfp*PH)
-
-for m, n, coeff in Z_modes:
-    Z += coeff * np.sin(m*TH - n*Nfp*PH)
-
-X = R * np.cos(PH)
-Y = R * np.sin(PH)
-
+xval, yval, zval = gen_stellarator(R, Z, N)
 # --------------------------
 # Plot
 # --------------------------
@@ -54,7 +59,7 @@ fig = plt.figure(figsize=(8,8))
 ax = fig.add_subplot(111, projection='3d')
 
 ax.plot_surface(
-    X, Y, Z,
+    xval, yval, zval,
     linewidth=0,
     antialiased=True,
     alpha=0.8
